@@ -9,9 +9,9 @@
         <button type="submit">Ekle</button>
       </form>
       <ul>
-        <li v-for="(a, i) in airlines" :key="a.code">
+        <li v-for="a in airlines" :key="a.code">
           {{ a.code }} - {{ a.name }}
-          <button @click="removeAirline(i)">Sil</button>
+          <button @click="removeAirline(a.code)">Sil</button>
         </li>
       </ul>
     </div>
@@ -23,37 +23,43 @@
         <button type="submit">Ekle</button>
       </form>
       <ul>
-        <li v-for="(a, i) in aircraftTypes" :key="a.code">
+        <li v-for="a in aircraftTypes" :key="a.code">
           {{ a.code }} - {{ a.name }}
-          <button @click="removeAircraftType(i)">Sil</button>
+          <button @click="removeAircraftType(a.code)">Sil</button>
         </li>
       </ul>
     </div>
     <div class="ref-section">
       <h2>Rotalar (Route)</h2>
       <form @submit.prevent="addRoute">
-        <input v-model="newRoute.origin" placeholder="Origin (örn: IST)" maxlength="4" required />
-        <input v-model="newRoute.destination" placeholder="Destination (örn: ESB)" maxlength="4" required />
+        <select v-model="newRoute.originCode" required>
+          <option value="">Origin</option>
+          <option v-for="s in stations" :key="s.code" :value="s.code">{{ s.code }}</option>
+        </select>
+        <select v-model="newRoute.destinationCode" required>
+          <option value="">Destination</option>
+          <option v-for="s in stations" :key="s.code" :value="s.code">{{ s.code }}</option>
+        </select>
         <button type="submit">Ekle</button>
       </form>
       <ul>
-        <li v-for="(r, i) in routes" :key="r.origin + '-' + r.destination">
-          {{ r.origin }} → {{ r.destination }}
-          <button @click="removeRoute(i)">Sil</button>
+        <li v-for="r in routes" :key="r.id">
+          {{ r.origin.code }} → {{ r.destination.code }}
+          <button @click="removeRoute(r.id)">Sil</button>
         </li>
       </ul>
     </div>
     <div class="ref-section">
       <h2>Uçuş Tipleri (Flight Type)</h2>
       <form @submit.prevent="addFlightType">
-        <input v-model="newFlightType.code" placeholder="Kod (örn: PAX)" maxlength="8" required />
+        <input v-model="newFlightType.code" placeholder="Kod (örn: PAX)" maxlength="16" required />
         <input v-model="newFlightType.name" placeholder="Ad" required />
         <button type="submit">Ekle</button>
       </form>
       <ul>
-        <li v-for="(f, i) in flightTypes" :key="f.code">
+        <li v-for="f in flightTypes" :key="f.code">
           {{ f.code }} - {{ f.name }}
-          <button @click="removeFlightType(i)">Sil</button>
+          <button @click="removeFlightType(f.code)">Sil</button>
         </li>
       </ul>
     </div>
@@ -66,95 +72,125 @@
         <button type="submit">Ekle</button>
       </form>
       <ul>
-        <li v-for="(s, i) in stations" :key="s.code">
+        <li v-for="s in stations" :key="s.code">
           {{ s.code }} - {{ s.name }} ({{ s.country }})
-          <button @click="removeStation(i)">Sil</button>
+          <button @click="removeStation(s.code)">Sil</button>
         </li>
       </ul>
     </div>
+    <div v-if="error" class="error-msg">{{ error }}</div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { getUserRole } from '../services/authService';
-import { useRouter } from 'vue-router';
+import { ref, onMounted } from 'vue';
+import {
+  getAirlines, addAirline as addAirlineService, deleteAirline,
+  getAircraftTypes, addAircraftType as addAircraftTypeService, deleteAircraftType,
+  getStations, addStation as addStationService, deleteStation,
+  getRoutes, addRoute as addRouteService, deleteRoute,
+  getFlightTypes, addFlightType as addFlightTypeService, deleteFlightType
+} from '../services/flightService';
 
-const router = useRouter();
-const role = getUserRole();
-if (role !== 'admin' && role !== 'operator') {
-  router.push('/flights');
-}
+const airlines = ref([]);
+const aircraftTypes = ref([]);
+const stations = ref([]);
+const routes = ref([]);
+const flightTypes = ref([]);
+const error = ref('');
 
-const airlines = ref([
-  { code: 'TK', name: 'Turkish Airlines' },
-  { code: 'PC', name: 'Pegasus' },
-]);
 const newAirline = ref({ code: '', name: '' });
-function addAirline() {
-  if (!newAirline.value.code || !newAirline.value.name) return;
-  airlines.value.push({ ...newAirline.value });
-  newAirline.value = { code: '', name: '' };
-}
-function removeAirline(i) {
-  airlines.value.splice(i, 1);
-}
-
-const aircraftTypes = ref([
-  { code: 'A320', name: 'Airbus A320' },
-  { code: 'B738', name: 'Boeing 737-800' },
-]);
 const newAircraft = ref({ code: '', name: '' });
-function addAircraftType() {
-  if (!newAircraft.value.code || !newAircraft.value.name) return;
-  aircraftTypes.value.push({ ...newAircraft.value });
-  newAircraft.value = { code: '', name: '' };
-}
-function removeAircraftType(i) {
-  aircraftTypes.value.splice(i, 1);
-}
-
-const routes = ref([
-  { origin: 'IST', destination: 'ESB' },
-  { origin: 'SAW', destination: 'ADB' },
-]);
-const newRoute = ref({ origin: '', destination: '' });
-function addRoute() {
-  if (!newRoute.value.origin || !newRoute.value.destination) return;
-  routes.value.push({ ...newRoute.value });
-  newRoute.value = { origin: '', destination: '' };
-}
-function removeRoute(i) {
-  routes.value.splice(i, 1);
-}
-
-const flightTypes = ref([
-  { code: 'PAX', name: 'Passenger' },
-  { code: 'CRG', name: 'Cargo' },
-  { code: 'POS', name: 'Position' },
-]);
-const newFlightType = ref({ code: '', name: '' });
-function addFlightType() {
-  if (!newFlightType.value.code || !newFlightType.value.name) return;
-  flightTypes.value.push({ ...newFlightType.value });
-  newFlightType.value = { code: '', name: '' };
-}
-function removeFlightType(i) {
-  flightTypes.value.splice(i, 1);
-}
-
-const stations = ref([
-  { code: 'IST', name: 'İstanbul Havalimanı', country: 'Türkiye' },
-  { code: 'ESB', name: 'Esenboğa', country: 'Türkiye' },
-]);
 const newStation = ref({ code: '', name: '', country: '' });
-function addStation() {
-  if (!newStation.value.code || !newStation.value.name || !newStation.value.country) return;
-  stations.value.push({ ...newStation.value });
-  newStation.value = { code: '', name: '', country: '' };
+const newRoute = ref({ originCode: '', destinationCode: '' });
+const newFlightType = ref({ code: '', name: '' });
+
+async function refreshAll() {
+  try {
+    airlines.value = await getAirlines();
+    aircraftTypes.value = await getAircraftTypes();
+    stations.value = await getStations();
+    routes.value = await getRoutes();
+    flightTypes.value = await getFlightTypes();
+  } catch (e) {
+    error.value = e.message;
+  }
 }
-function removeStation(i) {
-  stations.value.splice(i, 1);
+onMounted(refreshAll);
+
+async function addAirline() {
+  try {
+    await addAirlineService(newAirline.value);
+    newAirline.value = { code: '', name: '' };
+    await refreshAll();
+  } catch (e) { error.value = e.message; }
+}
+
+async function removeAirline(code) {
+  try {
+    await deleteAirline(code);
+    await refreshAll();
+  } catch (e) { error.value = e.message; }
+}
+
+async function addAircraftType() {
+  try {
+    await addAircraftTypeService(newAircraft.value);
+    newAircraft.value = { code: '', name: '' };
+    await refreshAll();
+  } catch (e) { error.value = e.message; }
+}
+
+async function removeAircraftType(code) {
+  try {
+    await deleteAircraftType(code);
+    await refreshAll();
+  } catch (e) { error.value = e.message; }
+}
+
+async function addStation() {
+  try {
+    await addStationService(newStation.value);
+    newStation.value = { code: '', name: '', country: '' };
+    await refreshAll();
+  } catch (e) { error.value = e.message; }
+}
+
+async function removeStation(code) {
+  try {
+    await deleteStation(code);
+    await refreshAll();
+  } catch (e) { error.value = e.message; }
+}
+
+async function addRoute() {
+  try {
+    await addRouteService(newRoute.value);
+    newRoute.value = { originCode: '', destinationCode: '' };
+    await refreshAll();
+  } catch (e) { error.value = e.message; }
+}
+
+async function removeRoute(id) {
+  try {
+    await deleteRoute(id);
+    await refreshAll();
+  } catch (e) { error.value = e.message; }
+}
+
+async function addFlightType() {
+  try {
+    await addFlightTypeService(newFlightType.value);
+    newFlightType.value = { code: '', name: '' };
+    await refreshAll();
+  } catch (e) { error.value = e.message; }
+}
+
+async function removeFlightType(code) {
+  try {
+    await deleteFlightType(code);
+    await refreshAll();
+  } catch (e) { error.value = e.message; }
 }
 </script>
 
@@ -180,7 +216,7 @@ form {
   gap: 1rem;
   margin-bottom: 1rem;
 }
-input {
+input, select {
   padding: 0.5rem;
   border: 1px solid #ccc;
   border-radius: 4px;
@@ -202,5 +238,11 @@ ul {
 }
 li {
   margin-bottom: 0.5rem;
+}
+.error-msg {
+  color: #d32f2f;
+  font-size: 1.1em;
+  margin-top: 1rem;
+  text-align: center;
 }
 </style> 

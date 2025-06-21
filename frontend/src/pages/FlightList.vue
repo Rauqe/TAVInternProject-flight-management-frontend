@@ -8,11 +8,11 @@
       </select>
       <select v-model="filters.origin">
         <option value="">All Origin</option>
-        <option v-for="s in stations" :key="s.code" :value="s.code">{{ s.code }}</option>
+        <option v-for="s in stations" :key="s.code" :value="s.code">{{ s.name }} ({{s.code}})</option>
       </select>
       <select v-model="filters.destination">
         <option value="">All Destination</option>
-        <option v-for="s in stations" :key="s.code" :value="s.code">{{ s.code }}</option>
+        <option v-for="s in stations" :key="s.code" :value="s.code">{{ s.name }} ({{s.code}})</option>
       </select>
       <select v-model="filters.flightType">
         <option value="">All Types</option>
@@ -35,28 +35,27 @@
             <th>Flight Type</th>
             <th>Delay (min)</th>
             <th>Status</th>
-            <th>Edit/Delete</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="flight in filteredFlights" :key="flight.id" :class="{ 'row-cancelled': flight.status === 'Cancelled' }">
             <td>{{ flight.flightNumber }}</td>
-            <td>{{ flight.airline }}</td>
-            <td>{{ flight.aircraftType }}</td>
-            <td>{{ flight.origin }}</td>
-            <td>{{ flight.destination }}</td>
-            <td>{{ flight.date }}</td>
+            <td>{{ flight.airline?.name }}</td>
+            <td>{{ flight.aircraftType?.name }}</td>
+            <td>{{ flight.origin?.name }}</td>
+            <td>{{ flight.destination?.name }}</td>
+            <td>{{ flight.flightDate }}</td>
             <td>{{ flight.std }}</td>
             <td>{{ flight.sta }}</td>
             <td>{{ flight.flightType }}</td>
             <td :class="{ 'delay-cell': flight.delay > 0 }">{{ flight.delay || 0 }}</td>
             <td>
-              <span v-if="flight.status === 'Cancelled'" class="cancelled">Cancelled</span>
-              <span v-else>Scheduled</span>
+              <span :class="flight.status.toLowerCase()">{{ flight.status }}</span>
             </td>
             <td>
-              <button @click="editFlight(flight)">Edit</button>
-              <button @click="deleteFlight(flight.id)">Delete</button>
+              <button @click="editFlight(flight)" class="edit-btn">Edit</button>
+              <button @click="handleDelete(flight.id)" class="delete-btn">Delete</button>
             </td>
           </tr>
         </tbody>
@@ -82,13 +81,13 @@
           <div class="form-group"><label>Origin
             <select v-model="editFlightData.origin" required>
               <option value="">Select</option>
-              <option v-for="s in stations" :key="s.code" :value="s.code">{{ s.code }} - {{ s.name }}</option>
+              <option v-for="s in stations" :key="s.code" :value="s.code">{{ s.name }}</option>
             </select>
           </label></div>
           <div class="form-group"><label>Destination
             <select v-model="editFlightData.destination" required>
               <option value="">Select</option>
-              <option v-for="s in stations" :key="s.code" :value="s.code">{{ s.code }} - {{ s.name }}</option>
+              <option v-for="s in stations" :key="s.code" :value="s.code">{{ s.name }}</option>
             </select>
           </label></div>
           <div class="form-group"><label>Date <input type="date" v-model="editFlightData.date" required /></label></div>
@@ -100,9 +99,17 @@
               <option v-for="f in flightTypes" :key="f.code" :value="f.code">{{ f.name }}</option>
             </select>
           </label></div>
-          <button type="submit">Save</button>
+          <div class="form-group"><label>Status
+            <select v-model="editFlightData.status" required>
+                <option>Scheduled</option>
+                <option>Cancelled</option>
+            </select>
+          </label></div>
+          <div class="form-group"><label>Delay <input type="number" v-model.number="editFlightData.delay" /></label></div>
+          <button type="submit">Save Changes</button>
           <button type="button" @click="editModal = false">Cancel</button>
         </form>
+        <div v-if="errorMsg" class="error-msg">{{ errorMsg }}</div>
       </div>
     </div>
   </div>
@@ -110,11 +117,15 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import { getFlights, getAirlines, getStations, getFlightTypes } from '../services/flightService';
+import { getFlights, updateFlight, deleteFlight, getAirlines, getStations, getFlightTypes, getAircraftTypes } from '../services/flightService';
+
 const flights = ref([]);
 const airlines = ref([]);
 const stations = ref([]);
 const flightTypes = ref([]);
+const aircraftTypes = ref([]);
+const errorMsg = ref('');
+
 const filters = ref({
   airline: '',
   origin: '',
@@ -122,35 +133,75 @@ const filters = ref({
   flightType: '',
   search: '',
 });
+
 const editModal = ref(false);
 const editFlightData = ref({});
-onMounted(async () => {
-  flights.value = await getFlights();
-  airlines.value = await getAirlines();
-  stations.value = await getStations();
-  flightTypes.value = await getFlightTypes();
-});
+
+async function fetchData() {
+    try {
+        [flights.value, airlines.value, stations.value, flightTypes.value, aircraftTypes.value] = await Promise.all([
+            getFlights(),
+            getAirlines(),
+            getStations(),
+            getFlightTypes(),
+            getAircraftTypes()
+        ]);
+    } catch (e) {
+        errorMsg.value = "Failed to fetch data: " + e.message;
+    }
+}
+onMounted(fetchData);
+
 const filteredFlights = computed(() => {
+  if (!flights.value) return [];
   return flights.value.filter(f =>
-    (!filters.value.airline || f.airline === filters.value.airline) &&
-    (!filters.value.origin || f.origin === filters.value.origin) &&
-    (!filters.value.destination || f.destination === filters.value.destination) &&
+    (!filters.value.airline || (f.airline && f.airline.code === filters.value.airline)) &&
+    (!filters.value.origin || (f.origin && f.origin.code === filters.value.origin)) &&
+    (!filters.value.destination || (f.destination && f.destination.code === filters.value.destination)) &&
     (!filters.value.flightType || f.flightType === filters.value.flightType) &&
     (!filters.value.search || f.flightNumber.toLowerCase().includes(filters.value.search.toLowerCase()))
   );
 });
-function deleteFlight(id) {
-  const idx = flights.value.findIndex(f => f.id === id);
-  if (idx !== -1) flights.value.splice(idx, 1);
+
+async function handleDelete(id) {
+    if (confirm('Are you sure you want to delete this flight?')) {
+        try {
+            await deleteFlight(id);
+            fetchData(); // Refresh list
+        } catch (e) {
+            errorMsg.value = "Failed to delete flight: " + e.message;
 }
+    }
+}
+
 function editFlight(flight) {
-  editFlightData.value = { ...flight };
+  errorMsg.value = '';
+  editFlightData.value = {
+    id: flight.id,
+    flightNumber: flight.flightNumber,
+    airline: flight.airline?.code,
+    aircraftType: flight.aircraftType?.code,
+    origin: flight.origin?.code,
+    destination: flight.destination?.code,
+    date: flight.flightDate,
+    std: flight.std,
+    sta: flight.sta,
+    flightType: flight.flightType,
+    delay: flight.delay || 0,
+    status: flight.status,
+  };
   editModal.value = true;
 }
-function saveEdit() {
-  const idx = flights.value.findIndex(f => f.id === editFlightData.value.id);
-  if (idx !== -1) flights.value[idx] = { ...editFlightData.value };
+
+async function saveEdit() {
+    errorMsg.value = '';
+    try {
+        await updateFlight(editFlightData.value.id, editFlightData.value);
   editModal.value = false;
+        fetchData(); // Refresh list
+    } catch(e) {
+        errorMsg.value = "Failed to update flight: " + e.message;
+    }
 }
 </script>
 
@@ -186,7 +237,7 @@ table {
 td, th {
   white-space: nowrap;
   text-align: center;
-  padding: 8px 12px;
+  padding: 12px 15px;
 }
 th {
   background: #f5f5f5;
@@ -201,13 +252,14 @@ th {
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 100;
 }
 .modal {
   background-color: #fff;
   padding: 2rem;
   border-radius: 8px;
   box-shadow: 0 2px 8px #0001;
-  width: 50%;
+  width: 600px;
 }
 .form-group {
   margin-bottom: 1rem;
@@ -237,9 +289,26 @@ th {
   font-weight: bold;
 }
 .cancelled {
-  color: #888;
-  text-decoration: line-through;
+  color: #d32f2f;
   font-weight: bold;
+}
+.scheduled {
+    color: #388e3c;
+    font-weight: bold;
+}
+.edit-btn, .delete-btn {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    color: white;
+}
+.edit-btn {
+    background-color: #1976d2;
+}
+.delete-btn {
+    background-color: #d32f2f;
+    margin-left: 5px;
 }
 .row-cancelled {
   background: #f5f5f5;
@@ -253,5 +322,9 @@ th {
   table {
     min-width: 600px;
   }
+}
+.error-msg {
+    color: #d32f2f;
+    margin-top: 1rem;
 }
 </style> 
