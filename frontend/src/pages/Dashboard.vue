@@ -1,64 +1,133 @@
 <template>
-  <div class="dashboard-pro">
+  <div class="airline-dashboard">
+    <!-- Header Section -->
     <div class="dashboard-header">
-      <div>
-     <h2>Welcome, <span class="user-role">Admin</span></h2>
+      <div class="header-content">
+        <h1>Flight Management System</h1>
+        <p class="subtitle">TAV Airlines - Operations Dashboard</p>
       </div>
-      <div class="dashboard-stats">
-        <div class="stat-block">
-          <div class="stat-label">Total Flights</div>
-          <div class="stat-value">{{ totalFlights }}</div>
+      <div class="header-stats">
+        <div class="stat-item">
+          <span class="stat-number">{{ totalFlights }}</span>
+          <span class="stat-label">Active Flights</span>
         </div>
-        <div class="stat-block">
-          <div class="stat-label">Delay Rate</div>
-          <div class="stat-value">%{{ delayRate }}</div>
-        </div>
-        <div class="stat-block">
-          <div class="stat-label">Cancel Rate</div>
-          <div class="stat-value">%{{ cancelRate }}</div>
+        <div class="stat-item">
+          <span class="stat-number">{{ onTimeRate }}%</span>
+          <span class="stat-label">On-Time Performance</span>
         </div>
       </div>
     </div>
-    <div class="dashboard-quicklinks">
-      <router-link to="/flights" class="quick-card">
-        <div class="quick-icon">🛫</div>
-        <div class="quick-title">Flight List</div>
-        <div class="quick-desc">View and manage all flights</div>
-      </router-link>
-      <router-link to="/flights/create" class="quick-card">
-        <div class="quick-icon">➕</div>
-        <div class="quick-title">Add Flight</div>
-        <div class="quick-desc">Create a new flight record</div>
-      </router-link>
-      <router-link to="/reports" class="quick-card">
-        <div class="quick-icon">📊</div>
-        <div class="quick-title">Reports</div>
-        <div class="quick-desc">Operational and analytical reports</div>
-      </router-link>
-      <router-link to="/archive" class="quick-card">
-        <div class="quick-icon">🗄️</div>
-        <div class="quick-title">Flight Archive</div>
-        <div class="quick-desc">Past flight records</div>
-      </router-link>
-    </div>
-    <div class="dashboard-bottom">
-      <div class="system-status">
-        <h3>System Status</h3>
-        <ul>
-          <li><span class="status-dot up"></span> API Gateway: Up</li>
-          <li><span class="status-dot up"></span> Database: Up</li>
-          <li><span class="status-dot up"></span> Redis Cache: Up</li>
-          <li><span class="status-dot up"></span> Kafka: Up</li>
-          <li><span class="status-dot down"></span> Flight Archive: Down</li>
-        </ul>
+
+    <!-- Main Navigation Cards -->
+    <div class="main-navigation">
+      <div class="nav-section">
+        <h2>Flight Operations</h2>
+        <div class="nav-grid">
+          <router-link to="/flights" class="nav-card primary">
+            <div class="card-icon">✈️</div>
+            <div class="card-content">
+              <h3>Flight Management</h3>
+              <p>View, edit and manage all flight schedules</p>
+            </div>
+          </router-link>
+          
+          <router-link to="/flights/create" class="nav-card secondary">
+            <div class="card-icon">➕</div>
+            <div class="card-content">
+              <h3>Add New Flight</h3>
+              <p>Create new flight schedules</p>
+            </div>
+          </router-link>
+        </div>
       </div>
-      <div class="recent-activity">
-        <h3>Recent Activity</h3>
-        <ul>
-          <li>Flight TK1234 added</li>
-          <li>Flight PC5678 updated</li>
-          <li>Route IST-ESB added to reference data</li>
-        </ul>
+
+      <div class="nav-section">
+        <h2>Reports & Analytics</h2>
+        <div class="nav-grid">
+          <router-link to="/reports" class="nav-card primary">
+            <div class="card-icon">📊</div>
+            <div class="card-content">
+              <h3>Operational Reports</h3>
+              <p>Performance analytics and insights</p>
+            </div>
+          </router-link>
+          
+          <router-link to="/archive" class="nav-card secondary">
+            <div class="card-icon">📋</div>
+            <div class="card-content">
+              <h3>Flight Archive</h3>
+              <p>Historical flight data and records</p>
+            </div>
+          </router-link>
+        </div>
+      </div>
+    </div>
+
+    <!-- Performance Overview -->
+    <div class="performance-section">
+      <h2>Performance Overview</h2>
+      <div class="performance-grid">
+        <div class="perf-card">
+          <div class="perf-header">
+            <h3>Flight Status</h3>
+          </div>
+          <div class="perf-content">
+            <div class="perf-item">
+              <span class="perf-label">Total Flights</span>
+              <span class="perf-value">{{ totalFlights }}</span>
+            </div>
+            <div class="perf-item">
+              <span class="perf-label">On Time</span>
+              <span class="perf-value success">{{ onTimeRate }}%</span>
+            </div>
+            <div class="perf-item">
+              <span class="perf-label">Delayed</span>
+              <span class="perf-value warning">{{ delayRate }}%</span>
+            </div>
+            <div class="perf-item">
+              <span class="perf-label">Cancelled</span>
+              <span class="perf-value danger">{{ cancelRate }}%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="perf-card">
+          <div class="perf-header">
+            <h3>System Status</h3>
+          </div>
+          <div class="perf-content">
+            <div class="status-item">
+              <span class="status-dot online"></span>
+              <span class="status-text">Database Connection</span>
+            </div>
+            <div class="status-item">
+              <span class="status-dot online"></span>
+              <span class="status-text">API Services</span>
+            </div>
+            <div class="status-item">
+              <span class="status-dot online"></span>
+              <span class="status-text">Flight Tracking</span>
+            </div>
+            <div class="status-item">
+              <span class="status-dot online"></span>
+              <span class="status-text">Reporting System</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="activity-section">
+      <h2>Recent Activity</h2>
+      <div class="activity-list">
+        <div v-for="activity in recentActivities" :key="activity.id" class="activity-item">
+          <div class="activity-time">{{ activity.time }}</div>
+          <div class="activity-content">
+            <div class="activity-title">{{ activity.text }}</div>
+            <div class="activity-type">{{ activity.type }}</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -67,163 +136,364 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { getFlights } from '../services/flightService';
+
 const flights = ref([]);
+
 onMounted(async () => {
   flights.value = await getFlights();
 });
+
 const totalFlights = computed(() => flights.value.length);
+
 const delayRate = computed(() =>
   flights.value.length
     ? Math.round(100 * flights.value.filter(f => f.delay && f.delay > 0).length / flights.value.length)
     : 0
 );
+
 const cancelRate = computed(() =>
   flights.value.length
     ? Math.round(100 * flights.value.filter(f => f.status === 'Cancelled').length / flights.value.length)
     : 0
 );
+
+const onTimeRate = computed(() => 100 - delayRate.value - cancelRate.value);
+
+const recentActivities = ref([
+  { id: 1, text: 'Flight TK1234 scheduled for departure', type: 'Flight Schedule', time: '10:30 AM' },
+  { id: 2, text: 'Route IST-ESB added to network', type: 'Route Management', time: '09:15 AM' },
+  { id: 3, text: 'Monthly performance report generated', type: 'Reporting', time: '08:45 AM' },
+  { id: 4, text: 'System maintenance completed', type: 'System', time: 'Yesterday' }
+]);
 </script>
 
 <style scoped>
-.dashboard-pro {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 2.5rem 2rem;
-  display: flex;
-  flex-direction: column;
+.airline-dashboard {
+  background: #ffffff;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  height: 100%;
 }
 
-.dashboard-header,
-.dashboard-quicklinks,
-.dashboard-bottom {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
+/* Header Section */
 .dashboard-header {
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+  color: white;
+  padding: 3rem 2rem;
+  border-radius: 12px;
+  margin-bottom: 3rem;
   display: flex;
-  justify-content: flex-start;
-  align-items: flex-start;
-  gap: 2rem;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.dashboard-header h2 {
-  font-size: 2.1em;
-  margin-bottom: 0.5rem;
+.header-content h1 {
+  font-size: 2.5rem;
+  font-weight: 300;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -0.5px;
 }
 
-.user-role {
-  color: #1976d2;
-  font-weight: 600;
+.subtitle {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  margin: 0;
+  font-weight: 300;
 }
 
-.dashboard-stats {
+.header-stats {
   display: flex;
-  gap: 2rem;
+  gap: 3rem;
 }
 
-.stat-block {
-  background: #f5f5f5;
-  border-radius: 8px;
-  padding: 1.2rem 2.2rem;
+.stat-item {
   text-align: center;
-  min-width: 120px;
-  box-shadow: 0 2px 8px #0001;
+}
+
+.stat-number {
+  display: block;
+  font-size: 2.5rem;
+  font-weight: 300;
+  margin-bottom: 0.25rem;
 }
 
 .stat-label {
-  font-size: 1.05em;
-  color: #1976d2;
-  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.stat-value {
-  font-size: 1.7em;
-  font-weight: bold;
+/* Main Navigation */
+.main-navigation {
+  margin-bottom: 3rem;
 }
 
-.dashboard-quicklinks {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 2rem;
+.nav-section {
   margin-bottom: 2.5rem;
-  width: 100%;
 }
 
-.quick-card {
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px #0001;
-  padding: 2rem 1.5rem 1.5rem 1.5rem;
+.nav-section h2 {
+  font-size: 1.5rem;
+  color: #1f2937;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 0.5rem;
+}
+
+.nav-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.nav-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 2rem;
   text-decoration: none;
-  color: #222;
+  color: inherit;
+  transition: all 0.2s ease;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  transition: box-shadow 0.2s, background 0.2s;
-  border: 1px solid #e3e8f0;
+  align-items: center;
+  gap: 1.5rem;
 }
 
-.quick-card:hover {
-  background: #f0f6ff;
-  box-shadow: 0 4px 16px #1976d233;
+.nav-card:hover {
+  border-color: #3b82f6;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+  transform: translateY(-2px);
 }
 
-.quick-icon {
-  font-size: 2.2em;
-  margin-bottom: 0.7rem;
+.nav-card.primary {
+  border-left: 4px solid #3b82f6;
 }
 
-.quick-title {
-  font-size: 1.15em;
+.nav-card.secondary {
+  border-left: 4px solid #6b7280;
+}
+
+.card-icon {
+  font-size: 2rem;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8fafc;
+  border-radius: 8px;
+}
+
+.card-content h3 {
+  font-size: 1.25rem;
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+  font-weight: 500;
+}
+
+.card-content p {
+  color: #6b7280;
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* Performance Section */
+.performance-section {
+  margin-bottom: 3rem;
+}
+
+.performance-section h2 {
+  font-size: 1.5rem;
+  color: #1f2937;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 0.5rem;
+}
+
+.performance-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 2rem;
+}
+
+.perf-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.perf-header {
+  background: #f8fafc;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.perf-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #374151;
+  font-weight: 500;
+}
+
+.perf-content {
+  padding: 1.5rem;
+}
+
+.perf-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.perf-item:last-child {
+  border-bottom: none;
+}
+
+.perf-label {
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+.perf-value {
   font-weight: 600;
-  margin-bottom: 0.3rem;
+  font-size: 1.1rem;
+  color: #1f2937;
 }
 
-.quick-desc {
-  color: #555;
-  font-size: 1em;
+.perf-value.success {
+  color: #059669;
 }
 
-.dashboard-bottom {
+.perf-value.warning {
+  color: #d97706;
+}
+
+.perf-value.danger {
+  color: #dc2626;
+}
+
+.status-item {
   display: flex;
-  gap: 2.5rem;
-  margin-top: 2.5rem;
-  flex-wrap: wrap;
-  width: 100%;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid #f3f4f6;
 }
 
-.system-status, .recent-activity {
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px #0001;
-  padding: 1.5rem 2rem;
-  flex: 1 1 320px;
-  min-width: 320px;
-  max-width: 100%;
-  margin: 0 0 2rem 0;
-}
-
-.system-status h3, .recent-activity h3 {
-  margin-bottom: 1rem;
-  font-size: 1.15em;
-  color: #1976d2;
+.status-item:last-child {
+  border-bottom: none;
 }
 
 .status-dot {
-  display: inline-block;
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  margin-right: 0.5rem;
 }
 
-.status-dot.up {
-  background: #4caf50;
+.status-dot.online {
+  background: #10b981;
 }
 
-.status-dot.down {
-  background: #d32f2f;
+.status-text {
+  color: #374151;
+  font-size: 0.95rem;
+}
+
+/* Activity Section */
+.activity-section {
+  margin-bottom: 2rem;
+}
+
+.activity-section h2 {
+  font-size: 1.5rem;
+  color: #1f2937;
+  margin-bottom: 1.5rem;
+  font-weight: 500;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 0.5rem;
+}
+
+.activity-list {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.activity-item {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  border-bottom: 1px solid #f3f4f6;
+  transition: background 0.2s ease;
+}
+
+.activity-item:hover {
+  background: #f8fafc;
+}
+
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+.activity-time {
+  color: #6b7280;
+  font-size: 0.9rem;
+  font-weight: 500;
+  min-width: 80px;
+}
+
+.activity-content {
+  flex: 1;
+}
+
+.activity-title {
+  color: #1f2937;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.activity-type {
+  color: #6b7280;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .airline-dashboard {
+    padding: 1rem;
+  }
+  
+  .dashboard-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 2rem;
+  }
+  
+  .header-stats {
+    gap: 2rem;
+  }
+  
+  .nav-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .performance-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .nav-card {
+    flex-direction: column;
+    text-align: center;
+  }
 }
 </style> 

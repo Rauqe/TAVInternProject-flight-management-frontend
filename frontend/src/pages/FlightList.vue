@@ -209,10 +209,8 @@ async function saveEdit() {
 .flight-list-container {
   width: 100%;
   box-sizing: border-box;
-  padding: 2rem;
   display: flex;
   flex-direction: column;
-  align-items: center;
 }
 .filters {
   display: flex;
@@ -226,6 +224,8 @@ async function saveEdit() {
 }
 .table-responsive {
   width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   max-width: 1200px;
   margin: 0 auto;
 }

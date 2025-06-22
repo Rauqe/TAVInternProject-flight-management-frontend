@@ -1,84 +1,102 @@
 <template>
-  <div class="reference-data">
-    <h1>Referans Veri Yönetimi</h1>
-    <div class="ref-section">
-      <h2>Havayolları (Airline)</h2>
-      <form @submit.prevent="addAirline">
-        <input v-model="newAirline.code" placeholder="Kod (örn: TK)" maxlength="3" required />
-        <input v-model="newAirline.name" placeholder="Ad" required />
-        <button type="submit">Ekle</button>
-      </form>
-      <ul>
-        <li v-for="a in airlines" :key="a.code">
-          {{ a.code }} - {{ a.name }}
-          <button @click="removeAirline(a.code)">Sil</button>
-        </li>
-      </ul>
+  <div class="reference-data-container">
+    <h1>Reference Data Management</h1>
+    
+    <div class="tab-navigation">
+      <button 
+        v-for="tab in tabs" 
+        :key="tab.id" 
+        :class="{ active: activeTab === tab.id }" 
+        @click="activeTab = tab.id">
+        {{ tab.name }}
+      </button>
     </div>
-    <div class="ref-section">
-      <h2>Uçak Tipleri (Aircraft Type)</h2>
-      <form @submit.prevent="addAircraftType">
-        <input v-model="newAircraft.code" placeholder="Kod (örn: A320)" maxlength="5" required />
-        <input v-model="newAircraft.name" placeholder="Ad" required />
-        <button type="submit">Ekle</button>
-      </form>
-      <ul>
-        <li v-for="a in aircraftTypes" :key="a.code">
-          {{ a.code }} - {{ a.name }}
-          <button @click="removeAircraftType(a.code)">Sil</button>
-        </li>
-      </ul>
+
+    <div class="tab-content">
+      <div v-if="activeTab === 'airlines'">
+        <h2>Airlines</h2>
+        <form @submit.prevent="addAirline">
+          <input v-model="newAirline.code" placeholder="Code (e.g., TK)" maxlength="3" required />
+          <input v-model="newAirline.name" placeholder="Name" required />
+          <button type="submit">Add Airline</button>
+        </form>
+        <ul>
+          <li v-for="a in airlines" :key="a.code">
+            <span>{{ a.code }} - {{ a.name }}</span>
+            <button @click="removeAirline(a.code)" class="delete-btn">Delete</button>
+          </li>
+        </ul>
+      </div>
+
+      <div v-if="activeTab === 'aircraftTypes'">
+        <h2>Aircraft Types</h2>
+        <form @submit.prevent="addAircraftType">
+          <input v-model="newAircraft.code" placeholder="Code (e.g., A320)" maxlength="5" required />
+          <input v-model="newAircraft.name" placeholder="Name" required />
+          <button type="submit">Add Aircraft Type</button>
+        </form>
+        <ul>
+          <li v-for="a in aircraftTypes" :key="a.code">
+            <span>{{ a.code }} - {{ a.name }}</span>
+            <button @click="removeAircraftType(a.code)" class="delete-btn">Delete</button>
+          </li>
+        </ul>
+      </div>
+
+       <div v-if="activeTab === 'stations'">
+        <h2>Stations</h2>
+        <form @submit.prevent="addStation">
+            <input v-model="newStation.code" placeholder="Code (e.g., IST)" maxlength="4" required />
+            <input v-model="newStation.name" placeholder="Name" required />
+            <input v-model="newStation.country" placeholder="Country" required />
+            <button type="submit">Add Station</button>
+        </form>
+        <ul>
+            <li v-for="s in stations" :key="s.code">
+                <span>{{ s.code }} - {{ s.name }} ({{ s.country }})</span>
+                <button @click="removeStation(s.code)" class="delete-btn">Delete</button>
+            </li>
+        </ul>
+      </div>
+      
+      <div v-if="activeTab === 'routes'">
+        <h2>Routes</h2>
+        <form @submit.prevent="addRoute">
+          <select v-model="newRoute.originCode" required>
+            <option disabled value="">Select Origin</option>
+            <option v-for="s in stations" :key="s.code" :value="s.code">{{ s.name }} ({{ s.code }})</option>
+          </select>
+          <select v-model="newRoute.destinationCode" required>
+            <option disabled value="">Select Destination</option>
+            <option v-for="s in stations" :key="s.code" :value="s.code">{{ s.name }} ({{ s.code }})</option>
+          </select>
+          <button type="submit">Add Route</button>
+        </form>
+        <ul>
+          <li v-for="r in routes" :key="r.id">
+            <span>{{ r.origin?.name }} ({{ r.origin?.code }}) → {{ r.destination?.name }} ({{ r.destination?.code }})</span>
+            <button @click="removeRoute(r.id)" class="delete-btn">Delete</button>
+          </li>
+        </ul>
+      </div>
+
+      <div v-if="activeTab === 'flightTypes'">
+        <h2>Flight Types</h2>
+        <form @submit.prevent="addFlightType">
+          <input v-model="newFlightType.code" placeholder="Code (e.g., PAX)" maxlength="16" required />
+          <input v-model="newFlightType.name" placeholder="Name" required />
+          <button type="submit">Add Flight Type</button>
+        </form>
+        <ul>
+          <li v-for="f in flightTypes" :key="f.code">
+            <span>{{ f.code }} - {{ f.name }}</span>
+            <button @click="removeFlightType(f.code)" class="delete-btn">Delete</button>
+          </li>
+        </ul>
+      </div>
+
     </div>
-    <div class="ref-section">
-      <h2>Rotalar (Route)</h2>
-      <form @submit.prevent="addRoute">
-        <select v-model="newRoute.originCode" required>
-          <option value="">Origin</option>
-          <option v-for="s in stations" :key="s.code" :value="s.code">{{ s.code }}</option>
-        </select>
-        <select v-model="newRoute.destinationCode" required>
-          <option value="">Destination</option>
-          <option v-for="s in stations" :key="s.code" :value="s.code">{{ s.code }}</option>
-        </select>
-        <button type="submit">Ekle</button>
-      </form>
-      <ul>
-        <li v-for="r in routes" :key="r.id">
-          {{ r.origin.code }} → {{ r.destination.code }}
-          <button @click="removeRoute(r.id)">Sil</button>
-        </li>
-      </ul>
-    </div>
-    <div class="ref-section">
-      <h2>Uçuş Tipleri (Flight Type)</h2>
-      <form @submit.prevent="addFlightType">
-        <input v-model="newFlightType.code" placeholder="Kod (örn: PAX)" maxlength="16" required />
-        <input v-model="newFlightType.name" placeholder="Ad" required />
-        <button type="submit">Ekle</button>
-      </form>
-      <ul>
-        <li v-for="f in flightTypes" :key="f.code">
-          {{ f.code }} - {{ f.name }}
-          <button @click="removeFlightType(f.code)">Sil</button>
-        </li>
-      </ul>
-    </div>
-    <div class="ref-section">
-      <h2>Havalimanları (Station)</h2>
-      <form @submit.prevent="addStation">
-        <input v-model="newStation.code" placeholder="Kod (örn: IST)" maxlength="4" required />
-        <input v-model="newStation.name" placeholder="Ad" required />
-        <input v-model="newStation.country" placeholder="Ülke" required />
-        <button type="submit">Ekle</button>
-      </form>
-      <ul>
-        <li v-for="s in stations" :key="s.code">
-          {{ s.code }} - {{ s.name }} ({{ s.country }})
-          <button @click="removeStation(s.code)">Sil</button>
-        </li>
-      </ul>
-    </div>
-    <div v-if="error" class="error-msg">{{ error }}</div>
+    <div v-if="error" class="error-toast">{{ error }}</div>
   </div>
 </template>
 
@@ -91,6 +109,15 @@ import {
   getRoutes, addRoute as addRouteService, deleteRoute,
   getFlightTypes, addFlightType as addFlightTypeService, deleteFlightType
 } from '../services/flightService';
+
+const activeTab = ref('airlines');
+const tabs = [
+  { id: 'airlines', name: 'Airlines' },
+  { id: 'aircraftTypes', name: 'Aircraft Types' },
+  { id: 'stations', name: 'Stations' },
+  { id: 'routes', name: 'Routes' },
+  { id: 'flightTypes', name: 'Flight Types' },
+];
 
 const airlines = ref([]);
 const aircraftTypes = ref([]);
@@ -195,54 +222,96 @@ async function removeFlightType(code) {
 </script>
 
 <style scoped>
-.reference-data {
+.reference-data-container {
   width: 100%;
-  box-sizing: border-box;
-  padding: 2rem;
+}
+
+.tab-navigation {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.reference-data > * {
-  width: 100%;
-  max-width: 700px;
-  margin: 0 auto;
-}
-.ref-section {
+  border-bottom: 2px solid #ccc;
   margin-bottom: 2rem;
 }
-form {
+
+.tab-navigation button {
+  padding: 1rem 1.5rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 1rem;
+  color: #555;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+}
+
+.tab-navigation button.active {
+  color: var(--primary-color, #1976d2);
+  border-bottom-color: var(--primary-color, #1976d2);
+}
+
+.tab-content h2 {
+  margin-top: 0;
+}
+
+.tab-content form {
   display: flex;
   gap: 1rem;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  align-items: center;
 }
-input, select {
-  padding: 0.5rem;
+
+.tab-content input,
+.tab-content select {
+  padding: 0.75rem;
   border: 1px solid #ccc;
   border-radius: 4px;
+  flex-grow: 1;
 }
-button {
-  padding: 0.5rem 1.2rem;
-  background: #1976d2;
-  color: #fff;
+
+.tab-content button[type="submit"] {
+  flex-grow: 0;
+  padding: 0.75rem 1.5rem;
+  background-color: var(--primary-color, #1976d2);
+  color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
 }
-button:hover {
-  background: #1565c0;
-}
-ul {
+
+.tab-content ul {
   list-style: none;
   padding: 0;
 }
-li {
-  margin-bottom: 0.5rem;
+
+.tab-content li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  border-bottom: 1px solid #eee;
 }
-.error-msg {
-  color: #d32f2f;
-  font-size: 1.1em;
-  margin-top: 1rem;
-  text-align: center;
+
+.tab-content li:nth-child(odd) {
+  background-color: #f9f9f9;
+}
+
+.delete-btn {
+    background-color: #e53935;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.error-toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #d32f2f;
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 </style> 

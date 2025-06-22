@@ -42,13 +42,14 @@ const adminItems = [
 
 <style scoped>
 .sidebar {
-  width: 240px;
-  min-height: 100vh;
-  background: #16213e;
-  color: #fff;
-  opacity: 1;
+  width: var(--sidebar-width, 250px);
+  height: 100vh;
+  background: #2c3e50;
+  color: #ecf0f1;
   display: flex;
   flex-direction: column;
+  padding: 1rem 0;
+  flex-shrink: 0; /* Prevent sidebar from shrinking */
   box-shadow: 2px 0 8px #0002;
   z-index: 10;
   font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
