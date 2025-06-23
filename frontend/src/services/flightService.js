@@ -1,10 +1,7 @@
-// Uçuş işlemleri için API servis fonksiyonları
-
-const API_BASE_URL = 'http://localhost:8080/api';
+import apiClient from './api';
 
 // #region Flight Operations
 export async function addFlight(flight) {
-  // DTO'ya uygun hale getir
   const flightDTO = {
     flightNumber: flight.flightNumber,
     airlineCode: flight.airline,
@@ -18,20 +15,13 @@ export async function addFlight(flight) {
     delay: flight.delay,
     status: flight.status,
   };
-
-  const res = await fetch(`${API_BASE_URL}/flights`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(flightDTO),
-  });
-  if (!res.ok) throw new Error('Uçuş kaydı başarısız');
-  return await res.json();
+  const response = await apiClient.post('/api/flights', flightDTO);
+  return response.data;
 }
 
 export async function getFlights() {
-  const res = await fetch(`${API_BASE_URL}/flights`);
-  if (!res.ok) throw new Error('Uçuş verileri alınamadı');
-  return await res.json();
+  const response = await apiClient.get('/api/flights');
+  return response.data;
 }
 
 export async function updateFlight(id, flightData) {
@@ -48,123 +38,49 @@ export async function updateFlight(id, flightData) {
     delay: flightData.delay,
     status: flightData.status,
   };
-
-  const res = await fetch(`${API_BASE_URL}/flights/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(flightDTO),
-  });
-  if (!res.ok) throw new Error('Uçuş güncellenemedi');
-  return await res.json();
+  const response = await apiClient.put(`/api/flights/${id}`, flightDTO);
+  return response.data;
 }
 
 export async function deleteFlight(id) {
-    const res = await fetch(`${API_BASE_URL}/flights/${id}`, {
-        method: 'DELETE',
-    });
-    if (!res.ok) throw new Error('Uçuş silinemedi');
+  await apiClient.delete(`/api/flights/${id}`);
 }
 // #endregion
 
-// #region Reference Data
-async function fetchReferenceData(endpoint) {
-  const res = await fetch(`${API_BASE_URL}/reference/${endpoint}`);
-  if (!res.ok) throw new Error(`Referans veri alınamadı: ${endpoint}`);
-  return await res.json();
+// #region Generic Reference Data Functions
+async function getRefData(endpoint) {
+  const response = await apiClient.get(`/api/${endpoint}`);
+  return response.data;
 }
 
-export async function getAirlines() {
-  return fetchReferenceData('airlines');
+async function addRefData(endpoint, data) {
+  const response = await apiClient.post(`/api/${endpoint}`, data);
+  return response.data;
 }
 
-export async function addAirline(airline) {
-  const res = await fetch(`${API_BASE_URL}/reference/airlines`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(airline),
-  });
-  if (!res.ok) throw new Error('Havayolu eklenemedi');
-  return await res.json();
+async function deleteRefData(endpoint, id) {
+  await apiClient.delete(`/api/${endpoint}/${id}`);
 }
+// #endregion
 
-export async function deleteAirline(code) {
-  const res = await fetch(`${API_BASE_URL}/reference/airlines/${code}`, { method: 'DELETE' });
-  if (!res.ok) throw new Error('Havayolu silinemedi');
-}
+// #region Specific Reference Data Exports
+export const getAirlines = () => getRefData('airlines');
+export const addAirline = (data) => addRefData('airlines', data);
+export const deleteAirline = (code) => deleteRefData('airlines', code);
 
-export async function getAircraftTypes() {
-  return fetchReferenceData('aircraft-types');
-}
+export const getAircraftTypes = () => getRefData('aircraft-types');
+export const addAircraftType = (data) => addRefData('aircraft-types', data);
+export const deleteAircraftType = (code) => deleteRefData('aircraft-types', code);
 
-export async function addAircraftType(type) {
-  const res = await fetch(`${API_BASE_URL}/reference/aircraft-types`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(type),
-  });
-  if (!res.ok) throw new Error('Uçak tipi eklenemedi');
-  return await res.json();
-}
+export const getStations = () => getRefData('stations');
+export const addStation = (data) => addRefData('stations', data);
+export const deleteStation = (code) => deleteRefData('stations', code);
 
-export async function deleteAircraftType(code) {
-  const res = await fetch(`${API_BASE_URL}/reference/aircraft-types/${code}`, { method: 'DELETE' });
-  if (!res.ok) throw new Error('Uçak tipi silinemedi');
-}
+export const getRoutes = () => getRefData('routes');
+export const addRoute = (data) => addRefData('routes', data);
+export const deleteRoute = (id) => deleteRefData('routes', id);
 
-export async function getStations() {
-  return fetchReferenceData('stations');
-}
-
-export async function addStation(station) {
-  const res = await fetch(`${API_BASE_URL}/reference/stations`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(station),
-  });
-  if (!res.ok) throw new Error('Havalimanı eklenemedi');
-  return await res.json();
-}
-
-export async function deleteStation(code) {
-  const res = await fetch(`${API_BASE_URL}/reference/stations/${code}`, { method: 'DELETE' });
-  if (!res.ok) throw new Error('Havalimanı silinemedi');
-}
-
-export async function getRoutes() {
-  return fetchReferenceData('routes');
-}
-
-export async function addRoute(route) {
-  const res = await fetch(`${API_BASE_URL}/reference/routes`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(route),
-  });
-  if (!res.ok) throw new Error('Rota eklenemedi');
-  return await res.json();
-}
-
-export async function deleteRoute(id) {
-  const res = await fetch(`${API_BASE_URL}/reference/routes/${id}`, { method: 'DELETE' });
-  if (!res.ok) throw new Error('Rota silinemedi');
-}
-
-export async function getFlightTypes() {
-  return fetchReferenceData('flight-types');
-}
-
-export async function addFlightType(type) {
-  const res = await fetch(`${API_BASE_URL}/reference/flight-types`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(type),
-  });
-  if (!res.ok) throw new Error('Uçuş tipi eklenemedi');
-  return await res.json();
-}
-
-export async function deleteFlightType(code) {
-  const res = await fetch(`${API_BASE_URL}/reference/flight-types/${code}`, { method: 'DELETE' });
-  if (!res.ok) throw new Error('Uçuş tipi silinemedi');
-}
-// #endregion 
+export const getFlightTypes = () => getRefData('flight-types');
+export const addFlightType = (data) => addRefData('flight-types', data);
+export const deleteFlightType = (code) => deleteRefData('flight-types', code);
+// #endregion

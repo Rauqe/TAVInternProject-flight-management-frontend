@@ -1,18 +1,31 @@
 <template>
-  <div class="login-page">
-    <h1>Giriş Yap</h1>
-    <form @submit.prevent="handleLogin">
-      <div class="form-group">
-        <label for="username">Kullanıcı Adı</label>
-        <input id="username" v-model="username" required autocomplete="username" />
+  <div class="login-container">
+    <div class="login-box">
+      <div class="login-header">
+        <div class="logo">✈️</div>
+        <h1>FlightMS Portal</h1>
+        <p>Welcome back! Please sign in to continue.</p>
       </div>
-      <div class="form-group">
-        <label for="password">Parola</label>
-        <input id="password" type="password" v-model="password" required autocomplete="current-password" />
+      <form @submit.prevent="handleLogin">
+        <div class="input-group">
+          <label for="username">Username</label>
+          <input id="username" type="text" v-model="username" required autocomplete="username" placeholder="Enter your username" />
+        </div>
+        <div class="input-group">
+          <label for="password">Password</label>
+          <input id="password" type="password" v-model="password" required autocomplete="current-password" placeholder="Enter your password" />
+        </div>
+        <div v-if="error" class="error-message">
+          {{ error }}
+        </div>
+        <button type="submit" class="login-button" :disabled="isLoading">
+          {{ isLoading ? 'Signing In...' : 'Sign In' }}
+        </button>
+      </form>
+       <div class="login-footer">
+        <a href="#">Forgot Password?</a>
       </div>
-      <button type="submit">Giriş</button>
-      <div v-if="error" class="error-toast">{{ error }}</div>
-    </form>
+    </div>
   </div>
 </template>
 
@@ -21,54 +34,141 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { login } from '../services/authService';
 
-const username = ref('');
-const password = ref('');
+const username = ref('admin'); // Default for easy testing
+const password = ref('password'); // Default for easy testing
 const error = ref('');
+const isLoading = ref(false);
 const router = useRouter();
 
 async function handleLogin() {
   error.value = '';
+  isLoading.value = true;
   try {
-    const token = await login(username.value, password.value);
-    localStorage.setItem('jwt', token);
-    router.push('/flights');
+    await login(username.value, password.value);
+    router.push({ name: 'dashboard' });
   } catch (e) {
-    error.value = e.message;
+    if (e.response && (e.response.status === 401 || e.response.status === 403)) {
+      error.value = "Invalid username or password.";
+    } else {
+      error.value = "An unexpected error occurred. Please try again.";
+    }
+  } finally {
+    isLoading.value = false;
   }
 }
 </script>
 
 <style scoped>
-.login-page {
-  max-width: 400px;
-  margin: 3rem auto;
-  background: #fff;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px #0001;
-}
-.form-group {
-  margin-bottom: 1.5rem;
+.login-container {
   display: flex;
-  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  width: 100vw;
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
-button {
-  padding: 0.75rem 2rem;
+
+.login-box {
+  width: 100%;
+  max-width: 420px;
+  background: white;
+  padding: 3rem;
+  border-radius: 16px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.login-header .logo {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.login-header h1 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.login-header p {
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+.input-group {
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.input-group label {
+  display: block;
+  font-size: 0.9rem;
+  color: #555;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 0.9rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
   font-size: 1rem;
-  background: #1976d2;
-  color: #fff;
+  box-sizing: border-box; /* Important for padding and width calculation */
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.error-message {
+  color: #dc2626;
+  background-color: #fef2f2;
+  border: 1px solid #dc2626;
+  border-radius: 8px;
+  padding: 0.8rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.login-button {
+  width: 100%;
+  padding: 1rem;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #1e3a8a, #3b82f6);
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 600;
   cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
-button:hover {
-  background: #1565c0;
+
+.login-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
 }
-.error-toast {
-  color: #721c24;
-  background: #f8d7da;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  margin-top: 1rem;
+
+.login-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.login-footer {
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.login-footer a {
+  color: #3b82f6;
+  text-decoration: none;
+}
+
+.login-footer a:hover {
+  text-decoration: underline;
 }
 </style> 

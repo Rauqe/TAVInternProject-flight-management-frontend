@@ -1,17 +1,21 @@
 package com.yigit.backend;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/reference/aircraft-types")
+@RequestMapping("/api/aircraft-types")
 @CrossOrigin(origins = "http://localhost:5173")
+@PreAuthorize("hasAuthority('ADMIN')")
 public class AircraftTypeController {
 
-    @Autowired
-    private AircraftTypeRepository aircraftTypeRepository;
+    private final AircraftTypeRepository aircraftTypeRepository;
+
+    public AircraftTypeController(AircraftTypeRepository aircraftTypeRepository) {
+        this.aircraftTypeRepository = aircraftTypeRepository;
+    }
 
     @GetMapping
     public List<AircraftType> getAllAircraftTypes() {

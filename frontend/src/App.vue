@@ -1,12 +1,17 @@
 <script setup>
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
 import Sidebar from './components/Sidebar.vue'
 import { RouterView } from 'vue-router'
+
+const route = useRoute();
+const showSidebar = computed(() => route.name !== 'login');
 </script>
 
 <template>
   <div id="app">
-    <Sidebar />
-    <main class="content-wrapper">
+    <Sidebar v-if="showSidebar" />
+    <main :class="['content-wrapper', { 'content-wrapper--padded': showSidebar }]">
       <router-view />
     </main>
   </div>
@@ -102,7 +107,7 @@ body {
   height: 100vh;
 }
 
-.content-wrapper > * {
+.content-wrapper--padded > * {
   width: 100%;
   max-width: 1400px; 
   margin: 0 auto;

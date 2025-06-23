@@ -1,12 +1,14 @@
 package com.yigit.backend;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/reference/flight-types")
+@RequestMapping("/api/flight-types")
 @CrossOrigin(origins = "http://localhost:5173")
+@PreAuthorize("hasAuthority('ADMIN')")
 public class FlightTypeController {
     @Autowired
     private FlightTypeRepository flightTypeRepository;
@@ -21,8 +23,8 @@ public class FlightTypeController {
         return flightTypeRepository.save(flightType);
     }
 
-    @DeleteMapping("/{code}")
-    public void deleteFlightType(@PathVariable String code) {
-        flightTypeRepository.deleteById(code);
+    @DeleteMapping("/{id}")
+    public void deleteFlightType(@PathVariable String id) {
+        flightTypeRepository.deleteById(id);
     }
 } 
