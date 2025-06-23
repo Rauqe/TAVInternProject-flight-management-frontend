@@ -1,6 +1,9 @@
 <template>
   <div class="flight-list-container">
-    <h1>Flight List</h1>
+    <div class="flight-list-header">
+      <h1>Flight List</h1>
+      <button class="create-flight-btn" @click="drawerOpen = true">+ Create Flight</button>
+    </div>
     <div class="filters">
       <select v-model="filters.airline">
         <option value="">All Airlines</option>
@@ -112,12 +115,74 @@
         <div v-if="errorMsg" class="error-msg">{{ errorMsg }}</div>
       </div>
     </div>
+    <div v-if="drawerOpen" class="drawer-backdrop" @click.self="drawerOpen = false">
+      <div class="drawer">
+        <h2>Add Flight</h2>
+        <form @submit.prevent="handleCreateSubmit">
+           <div class="form-group"><label>Airline
+            <select v-model="createForm.airline" required @change="onAirlineChange">
+              <option value="">Select</option>
+              <option v-for="a in airlines" :key="a.code" :value="a.code">{{ a.name }}</option>
+            </select>
+          </label></div>
+          <div class="form-group"><label>Flight Number
+            <input
+              v-model="createForm.flightNumber"
+              required
+              :disabled="!createForm.airline"
+              :placeholder="createForm.airline ? '(ex. ' + createForm.airline + '1234)' : ''"
+              class="flight-number-input"
+            />
+          </label></div>
+        
+          <div class="form-group"><label>Aircraft Type
+            <select v-model="createForm.aircraftType" required>
+              <option value="">Select</option>
+              <option v-for="a in aircraftTypes" :key="a.code" :value="a.code">{{ a.name }}</option>
+            </select>
+          </label></div>
+          <div class="form-group"><label>Origin
+            <select v-model="createForm.origin" required>
+              <option value="">Select</option>
+              <option v-for="s in stations" :key="s.code" :value="s.code">{{ s.name }}</option>
+            </select>
+          </label></div>
+          <div class="form-group"><label>Destination
+            <select v-model="createForm.destination" required>
+              <option value="">Select</option>
+              <option v-for="s in stations" :key="s.code" :value="s.code">{{ s.name }}</option>
+            </select>
+          </label></div>
+          <div class="form-group"><label>Date <input type="date" v-model="createForm.date" required /></label></div>
+          <div class="form-group"><label>STD <input type="time" v-model="createForm.std" required /></label></div>
+          <div class="form-group"><label>STA <input type="time" v-model="createForm.sta" required /></label></div>
+          <div class="form-group"><label>Flight Type
+            <select v-model="createForm.flightType" required>
+              <option value="">Select</option>
+              <option v-for="f in flightTypes" :key="f.code" :value="f.code">{{ f.name }}</option>
+            </select>
+          </label></div>
+          <div class="form-group"><label>Status
+            <select v-model="createForm.status" required>
+                <option>Scheduled</option>
+                <option>Cancelled</option>
+            </select>
+          </label></div>
+          <div class="form-group"><label>Delay <input type="number" v-model.number="createForm.delay" /></label></div>
+          <button type="submit">Save</button>
+          <button type="button" @click="drawerOpen = false">Cancel</button>
+        </form>
+        <div v-if="createErrorMsg" class="error-msg">{{ createErrorMsg }}</div>
+        <div v-if="createSuccessMsg" class="success-msg">{{ createSuccessMsg }}</div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
-import { getFlights, updateFlight, deleteFlight, getAirlines, getStations, getFlightTypes, getAircraftTypes } from '../services/flightService';
+import { ref, onMounted, computed, onUnmounted } from 'vue';
+import { getFlights, updateFlight, deleteFlight, getAirlines, getStations, getFlightTypes, getAircraftTypes, addFlight } from '../services/flightService';
+import { connectFlightWebSocket, disconnectFlightWebSocket } from '../services/websocketService';
 
 const flights = ref([]);
 const airlines = ref([]);
@@ -125,6 +190,22 @@ const stations = ref([]);
 const flightTypes = ref([]);
 const aircraftTypes = ref([]);
 const errorMsg = ref('');
+const drawerOpen = ref(false);
+const createForm = ref({
+  flightNumber: '',
+  airline: '',
+  aircraftType: '',
+  origin: '',
+  destination: '',
+  date: '',
+  std: '',
+  sta: '',
+  flightType: '',
+  delay: 0,
+  status: 'Scheduled',
+});
+const createErrorMsg = ref('');
+const createSuccessMsg = ref('');
 
 const filters = ref({
   airline: '',
@@ -150,7 +231,15 @@ async function fetchData() {
         errorMsg.value = "Failed to fetch data: " + e.message;
     }
 }
-onMounted(fetchData);
+onMounted(() => {
+  fetchData();
+  connectFlightWebSocket((flightList) => {
+    flights.value = flightList;
+  });
+});
+onUnmounted(() => {
+  disconnectFlightWebSocket();
+});
 
 const filteredFlights = computed(() => {
   if (!flights.value) return [];
@@ -203,6 +292,24 @@ async function saveEdit() {
         errorMsg.value = "Failed to update flight: " + e.message;
     }
 }
+
+async function handleCreateSubmit() {
+  createErrorMsg.value = '';
+  createSuccessMsg.value = '';
+  try {
+    await addFlight(createForm.value);
+    createSuccessMsg.value = 'Flight created successfully!';
+    drawerOpen.value = false;
+    fetchData();
+    Object.keys(createForm.value).forEach(k => createForm.value[k] = k === 'delay' ? 0 : (k === 'status' ? 'Scheduled' : ''));
+  } catch (e) {
+    createErrorMsg.value = e.message || 'Failed to create flight.';
+  }
+}
+
+function onAirlineChange() {
+  createForm.value.flightNumber = '';
+}
 </script>
 
 <style scoped>
@@ -211,6 +318,26 @@ async function saveEdit() {
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
+}
+.flight-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+.create-flight-btn {
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-right: 65px;
+}
+.create-flight-btn:hover {
+  background: #1565c0;
 }
 .filters {
   display: flex;
@@ -326,5 +453,65 @@ th {
 .error-msg {
     color: #d32f2f;
     margin-top: 1rem;
+}
+.drawer-backdrop {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.2);
+  z-index: 200;
+  display: flex;
+  justify-content: flex-end;
+  align-items: stretch;
+}
+.drawer {
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  width: 650px;
+  max-width: 100vw;
+  height: 100vh;
+  box-shadow: -2px 0 8px #0002;
+  padding: 3rem 1rem 2rem 4rem;
+  overflow-y: auto;
+  position: relative;
+  animation: slideInDrawer 0.3s cubic-bezier(.4,0,.2,1);
+  text-align: left;
+}
+@keyframes slideInDrawer {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+.drawer h2 {
+  text-align: center;
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+.drawer .form-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.drawer label {
+  width: 100%;
+  text-align: left;
+}
+.drawer input,
+.drawer select {
+  text-align: center;
+}
+.success-msg {
+  color: #388e3c;
+  background: #e8f5e9;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  margin-top: 1rem;
+}
+.flight-number-input::placeholder {
+  color: #b0b0b0;
+  opacity: 0.7;
+  font-style: italic;
 }
 </style> 

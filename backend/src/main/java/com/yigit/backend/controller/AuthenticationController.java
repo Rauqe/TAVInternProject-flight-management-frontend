@@ -2,7 +2,6 @@ package com.yigit.backend.controller;
 
 import com.yigit.backend.dto.AuthenticationRequest;
 import com.yigit.backend.dto.AuthenticationResponse;
-import com.yigit.backend.dto.RegisterRequest;
 import com.yigit.backend.service.AuthenticationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

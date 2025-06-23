@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.NoSuchElementException;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 @RestController
 @RequestMapping("/api/flights")
@@ -18,6 +19,8 @@ public class FlightController {
     private AircraftTypeRepository aircraftTypeRepository;
     @Autowired
     private StationRepository stationRepository;
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
 
     @GetMapping
     public List<Flight> getAll() {
@@ -50,6 +53,7 @@ public class FlightController {
             flight.setStatus(flightDTO.getStatus());
 
             Flight savedFlight = flightRepository.save(flight);
+            messagingTemplate.convertAndSend("/topic/flights", flightRepository.findAll());
             return ResponseEntity.ok(savedFlight);
         } catch (NoSuchElementException e) {
             return ResponseEntity.badRequest().build();
@@ -84,6 +88,7 @@ public class FlightController {
             existingFlight.setStatus(flightDTO.getStatus());
 
             Flight updatedFlight = flightRepository.save(existingFlight);
+            messagingTemplate.convertAndSend("/topic/flights", flightRepository.findAll());
             return ResponseEntity.ok(updatedFlight);
         } catch (NoSuchElementException e) {
             return ResponseEntity.badRequest().build();
@@ -96,6 +101,7 @@ public class FlightController {
             return ResponseEntity.notFound().build();
         }
         flightRepository.deleteById(id);
+        messagingTemplate.convertAndSend("/topic/flights", flightRepository.findAll());
         return ResponseEntity.noContent().build();
     }
 } 

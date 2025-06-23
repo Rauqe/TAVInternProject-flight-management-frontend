@@ -134,13 +134,21 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import { getFlights } from '../services/flightService';
+import { connectFlightWebSocket, disconnectFlightWebSocket } from '../services/websocketService';
 
 const flights = ref([]);
 
 onMounted(async () => {
   flights.value = await getFlights();
+  connectFlightWebSocket((flightList) => {
+    flights.value = flightList;
+    updateRecentActivities();
+  });
+});
+onUnmounted(() => {
+  disconnectFlightWebSocket();
 });
 
 const totalFlights = computed(() => flights.value.length);
@@ -159,12 +167,43 @@ const cancelRate = computed(() =>
 
 const onTimeRate = computed(() => 100 - delayRate.value - cancelRate.value);
 
-const recentActivities = ref([
+const staticActivities = [
   { id: 1, text: 'Flight TK1234 scheduled for departure', type: 'Flight Schedule', time: '10:30 AM' },
   { id: 2, text: 'Route IST-ESB added to network', type: 'Route Management', time: '09:15 AM' },
   { id: 3, text: 'Monthly performance report generated', type: 'Reporting', time: '08:45 AM' },
   { id: 4, text: 'System maintenance completed', type: 'System', time: 'Yesterday' }
-]);
+];
+const recentActivities = ref([...staticActivities]);
+
+function updateRecentActivities() {
+  let dynamic = [];
+  if (flights.value.length > 0) {
+    // Hem flightDate+std hem id ile sırala, en güncel 5 uçuşu bul
+    const sorted = flights.value.slice().sort((a, b) => {
+      const dateA = a.flightDate && a.std ? new Date(a.flightDate + 'T' + a.std) : new Date(0);
+      const dateB = b.flightDate && b.std ? new Date(b.flightDate + 'T' + b.std) : new Date(0);
+      if (dateB - dateA !== 0) return dateB - dateA;
+      if (a.id && b.id) return b.id - a.id;
+      return 0;
+    });
+    dynamic = sorted.slice(0, 5).map(f => ({
+      id: f.id,
+      text: `Flight ${f.flightNumber} ${f.origin?.code || f.originCode} → ${f.destination?.code || f.destinationCode}`,
+      type: f.status === 'Cancelled' ? 'Cancelled' : (f.delay > 0 ? 'Delayed' : 'Scheduled'),
+      time: `${f.flightDate} ${f.std}`
+    }));
+  }
+  recentActivities.value = dynamic.length > 0 ? dynamic : [staticActivities[0]];
+}
+
+watch(flights, () => {
+  updateRecentActivities();
+});
+
+// İlk yüklemede de doldur
+onMounted(() => {
+  updateRecentActivities();
+});
 </script>
 
 <style scoped>
