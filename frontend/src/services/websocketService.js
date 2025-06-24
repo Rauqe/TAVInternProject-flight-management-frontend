@@ -1,39 +1,43 @@
 import { Client } from '@stomp/stompjs';
-import SockJS from 'sockjs-client';
 
 let stompClient = null;
 let connected = false;
 
 export function connectFlightWebSocket(onFlightEvent) {
   if (connected) {
-    console.log('[WebSocket] Already connected');
+    console.log('[STOMP] Already connected');
     return;
   }
-  console.log('[WebSocket] Connecting to ws...');
-  const socket = new SockJS('http://localhost:8080/ws');
+  console.log('[STOMP] Connecting to ws...');
   stompClient = new Client({
-    webSocketFactory: () => socket,
+    brokerURL: 'ws://localhost:8080/ws', // native WebSocket
     reconnectDelay: 5000,
-    debug: (str) => console.log('[WebSocket][DEBUG]', str),
+    debug: (str) => console.log('[STOMP][DEBUG]', str),
     onConnect: () => {
       connected = true;
-      console.log('[WebSocket] Connected!');
+      console.log('[STOMP] Connected!');
       stompClient.subscribe('/topic/flights', (message) => {
-        console.log('[WebSocket] Message received:', message.body);
+        console.log('[STOMP] Message received:', message.body);
         if (onFlightEvent) {
-          onFlightEvent(JSON.parse(message.body));
+          try {
+            onFlightEvent(JSON.parse(message.body));
+          } catch (e) {
+            console.error('STOMP JSON parse error:', e);
+          }
         }
       });
+      // Örnek publish (test için):
+      // stompClient.publish({ destination: '/app/hello', body: 'Yigit' });
     },
     onStompError: (frame) => {
-      console.error('[WebSocket] STOMP error:', frame);
+      console.error('[STOMP] STOMP error:', frame);
     },
     onWebSocketError: (event) => {
-      console.error('[WebSocket] WebSocket error:', event);
+      console.error('[STOMP] WebSocket error:', event);
     },
     onDisconnect: () => {
       connected = false;
-      console.log('[WebSocket] Disconnected!');
+      console.log('[STOMP] Disconnected!');
     }
   });
   stompClient.activate();
@@ -43,6 +47,6 @@ export function disconnectFlightWebSocket() {
   if (stompClient && connected) {
     stompClient.deactivate();
     connected = false;
-    console.log('[WebSocket] Disconnected by user');
+    console.log('[STOMP] Disconnected by user');
   }
 }
