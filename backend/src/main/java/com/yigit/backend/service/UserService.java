@@ -28,4 +28,16 @@ public class UserService {
                 .role(user.getRole())
                 .build();
     }
+
+    public void deleteUser(Long id) {
+        userRepository.deleteById(id);
+    }
+
+    public UserDto updateUser(Long id, UserDto userDto) {
+        User user = userRepository.findById(id).orElseThrow();
+        user.setUsername(userDto.getUsername());
+        user.setRole(userDto.getRole());
+        User updated = userRepository.save(user);
+        return convertToDto(updated);
+    }
 } 

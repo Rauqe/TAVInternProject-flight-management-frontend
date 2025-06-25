@@ -10,7 +10,7 @@ export function connectFlightWebSocket(onFlightEvent) {
   }
   console.log('[STOMP] Connecting to ws...');
   stompClient = new Client({
-    brokerURL: 'ws://localhost:8080/ws', // native WebSocket
+    brokerURL: 'ws://localhost:8081/ws', // native WebSocket
     reconnectDelay: 5000,
     debug: (str) => console.log('[STOMP][DEBUG]', str),
     onConnect: () => {

@@ -33,5 +33,19 @@ public class AdminController {
         return ResponseEntity.ok(authenticationService.register(request));
     }
 
+    @DeleteMapping("/users/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        userService.deleteUser(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/users/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<UserDto> updateUser(@PathVariable Long id, @RequestBody UserDto userDto) {
+        UserDto updated = userService.updateUser(id, userDto);
+        return ResponseEntity.ok(updated);
+    }
+
     // Optional: Add endpoints for deleting or updating users later
 } 

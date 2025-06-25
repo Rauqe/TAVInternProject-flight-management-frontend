@@ -18,4 +18,24 @@ export const createUser = async (userData) => {
     console.error("Failed to create user:", error);
     throw error;
   }
+};
+
+export const deleteUser = async (userId) => {
+  try {
+    const response = await apiClient.delete(`/api/admin/users/${userId}`);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to delete user:", error);
+    throw error;
+  }
+};
+
+export const updateUser = async (userId, userData) => {
+  try {
+    const response = await apiClient.put(`/api/admin/users/${userId}`, userData);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to update user:", error);
+    throw error;
+  }
 }; 

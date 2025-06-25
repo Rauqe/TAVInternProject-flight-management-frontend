@@ -49,5 +49,11 @@ INSERT INTO aircraft_type (code, name) VALUES
 ('A350', 'Airbus A350'),
 ('A380', 'Airbus A380');
 
--- Flight Data (20 flights)
--- (TÜM FLIGHT INSERTLERİ SİLİNDİ) 
+-- Flight Types
+INSERT INTO flight_type (code, name) VALUES 
+('PAX', 'Passenger'),
+('CRG', 'Cargo'),
+('CHT', 'Charter'),
+('VIP', 'VIP'),
+('MED', 'Medical'),
+('MIL', 'Military');

@@ -9,25 +9,13 @@
         </tr>
       </thead>
       <tbody>
-        <tr>
-          <td>API Gateway</td>
-          <td><span :class="statusClass('up')">Up</span></td>
-        </tr>
-        <tr>
-          <td>Database (MySQL)</td>
-          <td><span :class="statusClass('up')">Up</span></td>
-        </tr>
-        <tr>
-          <td>Redis Cache</td>
-          <td><span :class="statusClass('up')">Up</span></td>
-        </tr>
-        <tr>
-          <td>Kafka</td>
-          <td><span :class="statusClass('up')">Up</span></td>
-        </tr>
-        <tr>
-          <td>Flight Archive Service</td>
-          <td><span :class="statusClass('down')">Down</span></td>
+        <tr v-for="service in services" :key="service.name">
+          <td>{{ service.label }}</td>
+          <td>
+            <span :class="statusClass(service.status)">
+              {{ service.status === 'up' ? 'Up' : 'Down' }}
+            </span>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -39,9 +27,38 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue';
+import axios from 'axios';
+
+const services = ref([
+  { name: 'api', label: 'API', status: 'down' },
+  { name: 'database', label: 'Database (MySQL)', status: 'down' },
+  { name: 'kafka', label: 'Kafka', status: 'down' },
+]);
+
 function statusClass(status) {
   return status === 'up' ? 'status-up' : 'status-down';
 }
+
+async function fetchHealth() {
+  try {
+    const res = await axios.get('http://localhost:8081/api/health');
+    const data = res.data;
+    services.value = [
+      { name: 'api', label: 'API', status: data.api ? 'up' : 'down' },
+      { name: 'database', label: 'Database (MySQL)', status: data.database ? 'up' : 'down' },
+      { name: 'kafka', label: 'Kafka', status: data.kafka ? 'up' : 'down' },
+    ];
+  } catch (e) {
+    services.value = [
+      { name: 'api', label: 'API', status: 'down' },
+      { name: 'database', label: 'Database (MySQL)', status: 'down' },
+      { name: 'kafka', label: 'Kafka', status: 'down' },
+    ];
+  }
+}
+
+onMounted(fetchHealth);
 </script>
 
 <style scoped>

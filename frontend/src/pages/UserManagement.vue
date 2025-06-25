@@ -14,7 +14,6 @@
       <table class="user-table">
         <thead>
           <tr>
-            <th>ID</th>
             <th>Username</th>
             <th>Role</th>
             <th>Actions</th>
@@ -22,14 +21,14 @@
         </thead>
         <tbody>
           <tr v-for="user in users" :key="user.id">
-            <td>{{ user.id }}</td>
+            <!-- <td>{{ user.id }}</td> -->
             <td>{{ user.username }}</td>
             <td>
               <span :class="['role-badge', user.role.toLowerCase()]">{{ user.role }}</span>
             </td>
             <td class="actions">
-              <button class="action-btn edit-btn" title="Edit user">✏️</button>
-              <button class="action-btn delete-btn" title="Delete user">🗑️</button>
+              <button class="action-btn edit-btn" title="Edit user" @click="openEditModal(user)">✏️</button>
+              <button class="action-btn delete-btn" title="Delete user" @click="handleDeleteUser(user.id)">🗑️</button>
             </td>
           </tr>
         </tbody>
@@ -40,9 +39,8 @@
       No users found.
     </div>
 
-    <!-- Create User Modal -->
-    <div v-if="isModalOpen" class="modal-overlay" @click.self="closeCreateModal">
-      <div class="modal-content">
+    <div v-if="isModalOpen" class="drawer-backdrop" @click.self="closeCreateModal">
+      <div class="drawer">
         <h2>Create New User</h2>
         <form @submit.prevent="handleCreateUser">
           <div class="input-group">
@@ -70,12 +68,43 @@
         </form>
       </div>
     </div>
+
+    <!-- Edit User Modal -->
+    <div v-if="isEditModalOpen" class="modal-overlay" @click.self="closeEditModal">
+      <div class="modal-content">
+        <h2>Edit User</h2>
+        <form @submit.prevent="handleUpdateUser">
+          <div class="input-group">
+            <label for="edit-username">Username</label>
+            <input id="edit-username" type="text" v-model="editUserData.username" required />
+          </div>
+          <div class="input-group">
+            <label for="edit-password">Password (leave blank to keep current)</label>
+            <input id="edit-password" type="password" v-model="editUserData.password" />
+          </div>
+          <div class="input-group">
+            <label for="edit-role">Role</label>
+            <select id="edit-role" v-model="editUserData.role" required>
+              <option value="USER">User</option>
+              <option value="ADMIN">Admin</option>
+            </select>
+          </div>
+          <div v-if="modalError" class="error-message">{{ modalError }}</div>
+          <div class="modal-actions">
+            <button type="button" @click="closeEditModal" class="btn-secondary">Cancel</button>
+            <button type="submit" class="btn-primary" :disabled="isUpdating">
+              {{ isUpdating ? 'Updating...' : 'Update User' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { getUsers, createUser } from '../services/userService';
+import { getUsers, createUser, deleteUser, updateUser } from '../services/userService';
 
 const users = ref([]);
 const loading = ref(true);
@@ -83,13 +112,16 @@ const error = ref('');
 const modalError = ref('');
 
 const isModalOpen = ref(false);
+const isEditModalOpen = ref(false);
 const isCreating = ref(false);
+const isUpdating = ref(false);
 
 const newUser = ref({
   username: '',
   password: '',
   role: 'USER',
 });
+const editUserData = ref({ id: '', username: '', password: '', role: 'USER' });
 
 const fetchUsers = async () => {
   try {
@@ -126,6 +158,40 @@ const handleCreateUser = async () => {
     modalError.value = 'Failed to create user. The username might already exist.';
   } finally {
     isCreating.value = false;
+  }
+};
+
+const openEditModal = (user) => {
+  isEditModalOpen.value = true;
+  editUserData.value = { ...user, password: '' };
+  modalError.value = '';
+};
+
+const closeEditModal = () => {
+  isEditModalOpen.value = false;
+};
+
+const handleUpdateUser = async () => {
+  isUpdating.value = true;
+  modalError.value = '';
+  try {
+    await updateUser(editUserData.value.id, editUserData.value);
+    closeEditModal();
+    await fetchUsers();
+  } catch (e) {
+    modalError.value = 'Failed to update user.';
+  } finally {
+    isUpdating.value = false;
+  }
+};
+
+const handleDeleteUser = async (userId) => {
+  if (!confirm('Are you sure you want to delete this user?')) return;
+  try {
+    await deleteUser(userId);
+    await fetchUsers();
+  } catch (e) {
+    error.value = 'Failed to delete user.';
   }
 };
 </script>
@@ -273,5 +339,31 @@ h1 {
   padding: 0.8rem 1.2rem;
   border-radius: 4px;
   cursor: pointer;
+}
+.drawer-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.2);
+  z-index: 1000;
+  display: flex;
+  justify-content: flex-end;
+}
+.drawer {
+  background: #fff;
+  width: 400px;
+  max-width: 90vw;
+  height: 100vh;
+  box-shadow: -2px 0 16px rgba(0,0,0,0.12);
+  padding: 2rem 2rem 2rem 2rem;
+  display: flex;
+  flex-direction: column;
+  animation: slideInDrawer 0.2s;
+}
+@keyframes slideInDrawer {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
 }
 </style> 

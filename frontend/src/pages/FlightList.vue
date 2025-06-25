@@ -51,7 +51,7 @@
             <td>{{ flight.flightDate }}</td>
             <td>{{ flight.std }}</td>
             <td>{{ flight.sta }}</td>
-            <td>{{ flight.flightType }}</td>
+            <td>{{ getFlightTypeAbbreviation(flight.flightType) }}</td>
             <td :class="{ 'delay-cell': flight.delay > 0 }">{{ flight.delay || 0 }}</td>
             <td>
               <span :class="flight.status.toLowerCase()">{{ flight.status }}</span>
@@ -309,6 +309,11 @@ async function handleCreateSubmit() {
 
 function onAirlineChange() {
   createForm.value.flightNumber = '';
+}
+
+function getFlightTypeAbbreviation(flightType) {
+  const type = flightTypes.value.find(t => t.code === flightType);
+  return type ? type.code : flightType;
 }
 </script>
 

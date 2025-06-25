@@ -5,7 +5,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.NoSuchElementException;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.yigit.backend.service.FlightKafkaProducer;
 
 @RestController
 @RequestMapping("/api/flights")
@@ -20,7 +21,9 @@ public class FlightController {
     @Autowired
     private StationRepository stationRepository;
     @Autowired
-    private SimpMessagingTemplate messagingTemplate;
+    private FlightKafkaProducer flightKafkaProducer;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @GetMapping
     public List<Flight> getAll() {
@@ -53,7 +56,12 @@ public class FlightController {
             flight.setStatus(flightDTO.getStatus());
 
             Flight savedFlight = flightRepository.save(flight);
-            messagingTemplate.convertAndSend("/topic/flights", flightRepository.findAll());
+            try {
+                String flightsJson = objectMapper.writeValueAsString(flightRepository.findAll());
+                flightKafkaProducer.sendFlightUpdate(flightsJson);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
             return ResponseEntity.ok(savedFlight);
         } catch (NoSuchElementException e) {
             return ResponseEntity.badRequest().build();
@@ -88,7 +96,12 @@ public class FlightController {
             existingFlight.setStatus(flightDTO.getStatus());
 
             Flight updatedFlight = flightRepository.save(existingFlight);
-            messagingTemplate.convertAndSend("/topic/flights", flightRepository.findAll());
+            try {
+                String flightsJson = objectMapper.writeValueAsString(flightRepository.findAll());
+                flightKafkaProducer.sendFlightUpdate(flightsJson);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
             return ResponseEntity.ok(updatedFlight);
         } catch (NoSuchElementException e) {
             return ResponseEntity.badRequest().build();
@@ -101,7 +114,12 @@ public class FlightController {
             return ResponseEntity.notFound().build();
         }
         flightRepository.deleteById(id);
-        messagingTemplate.convertAndSend("/topic/flights", flightRepository.findAll());
+        try {
+            String flightsJson = objectMapper.writeValueAsString(flightRepository.findAll());
+            flightKafkaProducer.sendFlightUpdate(flightsJson);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
         return ResponseEntity.noContent().build();
     }
 } 

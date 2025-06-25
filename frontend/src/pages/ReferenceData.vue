@@ -59,27 +59,6 @@
         </ul>
       </div>
       
-      <div v-if="activeTab === 'routes'">
-        <h2>Routes</h2>
-        <form @submit.prevent="addRoute">
-          <select v-model="newRoute.originCode" required>
-            <option disabled value="">Select Origin</option>
-            <option v-for="s in stations" :key="s.code" :value="s.code">{{ s.name }} ({{ s.code }})</option>
-          </select>
-          <select v-model="newRoute.destinationCode" required>
-            <option disabled value="">Select Destination</option>
-            <option v-for="s in stations" :key="s.code" :value="s.code">{{ s.name }} ({{ s.code }})</option>
-          </select>
-          <button type="submit">Add Route</button>
-        </form>
-        <ul>
-          <li v-for="r in routes" :key="r.id">
-            <span>{{ r.origin?.name }} ({{ r.origin?.code }}) → {{ r.destination?.name }} ({{ r.destination?.code }})</span>
-            <button @click="removeRoute(r.id)" class="delete-btn">Delete</button>
-          </li>
-        </ul>
-      </div>
-
       <div v-if="activeTab === 'flightTypes'">
         <h2>Flight Types</h2>
         <form @submit.prevent="addFlightType">
@@ -106,7 +85,6 @@ import {
   getAirlines, addAirline as addAirlineService, deleteAirline,
   getAircraftTypes, addAircraftType as addAircraftTypeService, deleteAircraftType,
   getStations, addStation as addStationService, deleteStation,
-  getRoutes, addRoute as addRouteService, deleteRoute,
   getFlightTypes, addFlightType as addFlightTypeService, deleteFlightType
 } from '../services/flightService';
 
@@ -115,21 +93,18 @@ const tabs = [
   { id: 'airlines', name: 'Airlines' },
   { id: 'aircraftTypes', name: 'Aircraft Types' },
   { id: 'stations', name: 'Stations' },
-  { id: 'routes', name: 'Routes' },
   { id: 'flightTypes', name: 'Flight Types' },
 ];
 
 const airlines = ref([]);
 const aircraftTypes = ref([]);
 const stations = ref([]);
-const routes = ref([]);
 const flightTypes = ref([]);
 const error = ref('');
 
 const newAirline = ref({ code: '', name: '' });
 const newAircraft = ref({ code: '', name: '' });
 const newStation = ref({ code: '', name: '', country: '' });
-const newRoute = ref({ originCode: '', destinationCode: '' });
 const newFlightType = ref({ code: '', name: '' });
 
 async function refreshAll() {
@@ -137,7 +112,6 @@ async function refreshAll() {
     airlines.value = await getAirlines();
     aircraftTypes.value = await getAircraftTypes();
     stations.value = await getStations();
-    routes.value = await getRoutes();
     flightTypes.value = await getFlightTypes();
   } catch (e) {
     error.value = e.message;
@@ -186,21 +160,6 @@ async function addStation() {
 async function removeStation(code) {
   try {
     await deleteStation(code);
-    await refreshAll();
-  } catch (e) { error.value = e.message; }
-}
-
-async function addRoute() {
-  try {
-    await addRouteService(newRoute.value);
-    newRoute.value = { originCode: '', destinationCode: '' };
-    await refreshAll();
-  } catch (e) { error.value = e.message; }
-}
-
-async function removeRoute(id) {
-  try {
-    await deleteRoute(id);
     await refreshAll();
   } catch (e) { error.value = e.message; }
 }

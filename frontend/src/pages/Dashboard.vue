@@ -1,6 +1,5 @@
 <template>
   <div class="airline-dashboard">
-    <!-- Header Section -->
     <div class="dashboard-header">
       <div class="header-content">
         <h1>Flight Management System</h1>
@@ -18,7 +17,6 @@
       </div>
     </div>
 
-    <!-- Main Navigation Cards -->
     <div class="main-navigation">
       <div class="nav-section">
         <h2>Flight Operations</h2>
@@ -31,7 +29,7 @@
             </div>
           </router-link>
           
-          <router-link to="/flights/create" class="nav-card secondary">
+          <router-link :to="{ path: '/flights', query: { add: 1 } }" class="nav-card secondary">
             <div class="card-icon">➕</div>
             <div class="card-content">
               <h3>Add New Flight</h3>
@@ -97,12 +95,16 @@
           </div>
           <div class="perf-content">
             <div class="status-item">
-              <span class="status-dot online"></span>
+              <span :class="['status-dot', systemStatus.database ? 'online' : 'offline']"></span>
               <span class="status-text">Database Connection</span>
             </div>
             <div class="status-item">
-              <span class="status-dot online"></span>
+              <span :class="['status-dot', systemStatus.api ? 'online' : 'offline']"></span>
               <span class="status-text">API Services</span>
+            </div>
+            <div class="status-item">
+              <span :class="['status-dot', systemStatus.kafka ? 'online' : 'offline']"></span>
+              <span class="status-text">Kafka</span>
             </div>
             <div class="status-item">
               <span class="status-dot online"></span>
@@ -133,77 +135,95 @@
   </div>
 </template>
 
-<script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+<script>
 import { getFlights } from '../services/flightService';
 import { connectFlightWebSocket, disconnectFlightWebSocket } from '../services/websocketService';
+import axios from 'axios';
 
-const flights = ref([]);
-
-onMounted(async () => {
-  flights.value = await getFlights();
-  connectFlightWebSocket((flightList) => {
-    flights.value = flightList;
-    updateRecentActivities();
-  });
-});
-onUnmounted(() => {
-  disconnectFlightWebSocket();
-});
-
-const totalFlights = computed(() => flights.value.length);
-
-const delayRate = computed(() =>
-  flights.value.length
-    ? Math.round(100 * flights.value.filter(f => f.delay && f.delay > 0).length / flights.value.length)
-    : 0
-);
-
-const cancelRate = computed(() =>
-  flights.value.length
-    ? Math.round(100 * flights.value.filter(f => f.status === 'Cancelled').length / flights.value.length)
-    : 0
-);
-
-const onTimeRate = computed(() => 100 - delayRate.value - cancelRate.value);
-
-const staticActivities = [
-  { id: 1, text: 'Flight TK1234 scheduled for departure', type: 'Flight Schedule', time: '10:30 AM' },
-  { id: 2, text: 'Route IST-ESB added to network', type: 'Route Management', time: '09:15 AM' },
-  { id: 3, text: 'Monthly performance report generated', type: 'Reporting', time: '08:45 AM' },
-  { id: 4, text: 'System maintenance completed', type: 'System', time: 'Yesterday' }
-];
-const recentActivities = ref([...staticActivities]);
-
-function updateRecentActivities() {
-  let dynamic = [];
-  if (flights.value.length > 0) {
-    // Hem flightDate+std hem id ile sırala, en güncel 5 uçuşu bul
-    const sorted = flights.value.slice().sort((a, b) => {
-      const dateA = a.flightDate && a.std ? new Date(a.flightDate + 'T' + a.std) : new Date(0);
-      const dateB = b.flightDate && b.std ? new Date(b.flightDate + 'T' + b.std) : new Date(0);
-      if (dateB - dateA !== 0) return dateB - dateA;
-      if (a.id && b.id) return b.id - a.id;
-      return 0;
+export default {
+  name: 'Dashboard',
+  data() {
+    return {
+      flights: [],
+      systemStatus: { api: false, database: false, kafka: false },
+      staticActivities: [
+        { id: 1, text: 'Flight TK1234 scheduled for departure', type: 'Flight Schedule', time: '10:30 AM' },
+        { id: 2, text: 'Route IST-ESB added to network', type: 'Route Management', time: '09:15 AM' },
+        { id: 3, text: 'Monthly performance report generated', type: 'Reporting', time: '08:45 AM' },
+        { id: 4, text: 'System maintenance completed', type: 'System', time: 'Yesterday' }
+      ],
+      recentActivities: []
+    };
+  },
+  computed: {
+    totalFlights() {
+      return this.flights.length;
+    },
+    delayRate() {
+      return this.flights.length
+        ? Math.round(100 * this.flights.filter(f => f.delay && f.delay > 0).length / this.flights.length)
+        : 0;
+    },
+    cancelRate() {
+      return this.flights.length
+        ? Math.round(100 * this.flights.filter(f => f.status === 'Cancelled').length / this.flights.length)
+        : 0;
+    },
+    onTimeRate() {
+      return 100 - this.delayRate - this.cancelRate;
+    }
+  },
+  methods: {
+    async fetchSystemStatus() {
+      try {
+        const res = await axios.get('http://localhost:8081/api/health');
+        this.systemStatus = res.data;
+      } catch (e) {
+        this.systemStatus = { api: false, database: false, kafka: false };
+      }
+    },
+    updateRecentActivities() {
+      let dynamic = [];
+      if (this.flights.length > 0) {
+        // Hem flightDate+std hem id ile sırala, en güncel 5 uçuşu bul
+        const sorted = this.flights.slice().sort((a, b) => {
+          const dateA = a.flightDate && a.std ? new Date(a.flightDate + 'T' + a.std) : new Date(0);
+          const dateB = b.flightDate && b.std ? new Date(b.flightDate + 'T' + b.std) : new Date(0);
+          if (dateB - dateA !== 0) return dateB - dateA;
+          if (a.id && b.id) return b.id - a.id;
+          return 0;
+        });
+        dynamic = sorted.slice(0, 5).map(f => ({
+          id: f.id,
+          text: `Flight ${f.flightNumber} ${f.origin?.code || f.originCode} → ${f.destination?.code || f.destinationCode}`,
+          type: f.status === 'Cancelled' ? 'Cancelled' : (f.delay > 0 ? 'Delayed' : 'Scheduled'),
+          time: `${f.flightDate} ${f.std}`
+        }));
+      }
+      this.recentActivities = dynamic.length > 0 ? dynamic : [this.staticActivities[0]];
+    }
+  },
+  async mounted() {
+    this.flights = await getFlights();
+    connectFlightWebSocket((flightList) => {
+      this.flights = flightList;
+      this.updateRecentActivities();
     });
-    dynamic = sorted.slice(0, 5).map(f => ({
-      id: f.id,
-      text: `Flight ${f.flightNumber} ${f.origin?.code || f.originCode} → ${f.destination?.code || f.destinationCode}`,
-      type: f.status === 'Cancelled' ? 'Cancelled' : (f.delay > 0 ? 'Delayed' : 'Scheduled'),
-      time: `${f.flightDate} ${f.std}`
-    }));
+    await this.fetchSystemStatus();
+    this.updateRecentActivities();
+  },
+  beforeUnmount() {
+    disconnectFlightWebSocket();
+  },
+  watch: {
+    flights: {
+      handler() {
+        this.updateRecentActivities();
+      },
+      deep: true
+    }
   }
-  recentActivities.value = dynamic.length > 0 ? dynamic : [staticActivities[0]];
-}
-
-watch(flights, () => {
-  updateRecentActivities();
-});
-
-// İlk yüklemede de doldur
-onMounted(() => {
-  updateRecentActivities();
-});
+};
 </script>
 
 <style scoped>
@@ -436,7 +456,11 @@ onMounted(() => {
 }
 
 .status-dot.online {
-  background: #10b981;
+  background: #388e3c;
+}
+
+.status-dot.offline {
+  background: #d32f2f;
 }
 
 .status-text {

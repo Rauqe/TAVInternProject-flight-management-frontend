@@ -22,8 +22,24 @@
           {{ isLoading ? 'Signing In...' : 'Sign In' }}
         </button>
       </form>
-       <div class="login-footer">
-        <a href="#">Forgot Password?</a>
+      <div class="login-footer">
+        <a href="#" @click.prevent="showForgotModal = true">Forgot Password?</a>
+      </div>
+    </div>
+    <div v-if="showForgotModal" class="modal-overlay" @click.self="showForgotModal = false">
+      <div class="modal-content">
+        <h2>Forgot Password</h2>
+        <form @submit.prevent="handleForgotPassword">
+          <div class="input-group">
+            <label for="forgot-email">Email</label>
+            <input id="forgot-email" type="email" v-model="forgotEmail" required placeholder="Enter your email" />
+          </div>
+          <div v-if="forgotMsg" class="info-message">{{ forgotMsg }}</div>
+          <div class="modal-actions">
+            <button type="button" @click="showForgotModal = false" class="btn-secondary">Cancel</button>
+            <button type="submit" class="btn-primary">Send Reset Link</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
@@ -34,11 +50,15 @@ import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { login } from '../services/authService';
 
-const username = ref('admin'); // Default for easy testing
-const password = ref('password'); // Default for easy testing
+const username = ref('');
+const password = ref('');
 const error = ref('');
 const isLoading = ref(false);
 const router = useRouter();
+
+const showForgotModal = ref(false);
+const forgotEmail = ref('');
+const forgotMsg = ref('');
 
 async function handleLogin() {
   error.value = '';
@@ -55,6 +75,16 @@ async function handleLogin() {
   } finally {
     isLoading.value = false;
   }
+}
+
+function handleForgotPassword() {
+  // Simulate sending reset link
+  forgotMsg.value = `If an account with ${forgotEmail.value} exists, a reset link has been sent.`;
+  setTimeout(() => {
+    showForgotModal.value = false;
+    forgotEmail.value = '';
+    forgotMsg.value = '';
+  }, 2500);
 }
 </script>
 
@@ -170,5 +200,52 @@ async function handleLogin() {
 
 .login-footer a:hover {
   text-decoration: underline;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal-content {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 12px;
+  min-width: 320px;
+  max-width: 90vw;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+}
+.info-message {
+  color: #2563eb;
+  background: #e0e7ff;
+  border: 1px solid #a5b4fc;
+  border-radius: 8px;
+  padding: 0.8rem;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+}
+.btn-secondary {
+  background: #e5e7eb;
+  color: #374151;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  margin-right: 0.5rem;
+  cursor: pointer;
+}
+.btn-primary {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
 }
 </style> 
