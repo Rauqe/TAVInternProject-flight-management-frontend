@@ -611,6 +611,8 @@ watch(flights, validateAllRows, { deep: true });
   background: #f8f9fa;
   border-radius: 8px;
   padding: 16px;
+  overflow-x: auto;
+  max-width: 100%;
 }
 
 .sample-content pre {
@@ -619,6 +621,15 @@ watch(flights, validateAllRows, { deep: true });
   font-size: 0.9rem;
   color: #333;
   line-height: 1.4;
+  white-space: pre;
+  min-width: 400px;
+}
+
+@media (max-width: 600px) {
+  .sample-content pre {
+    font-size: 0.75rem;
+    min-width: 300px;
+  }
 }
 
 /* Preview Section */
