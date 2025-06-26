@@ -28,6 +28,7 @@
     </div>
     <div v-if="showForgotModal" class="modal-overlay" @click.self="showForgotModal = false">
       <div class="modal-content">
+        <button class="modal-close" @click="showForgotModal = false" aria-label="Close">&times;</button>
         <h2>Forgot Password</h2>
         <form @submit.prevent="handleForgotPassword">
           <div class="input-group">
@@ -105,7 +106,6 @@ function handleForgotPassword() {
   background: white;
   padding: 3rem;
   border-radius: 16px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   text-align: center;
 }
 
@@ -146,13 +146,12 @@ function handleForgotPassword() {
   border-radius: 8px;
   font-size: 1rem;
   box-sizing: border-box; /* Important for padding and width calculation */
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color 0.2s;
 }
 
 .input-group input:focus {
   outline: none;
   border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
 }
 
 .error-message {
@@ -165,27 +164,30 @@ function handleForgotPassword() {
   font-size: 0.9rem;
 }
 
-.login-button {
-  width: 100%;
-  padding: 1rem;
+.login-button, .btn-primary, .btn-secondary {
   border: none;
   border-radius: 8px;
-  background: linear-gradient(90deg, #1e3a8a, #3b82f6);
-  color: white;
+  padding: 1rem 1.5rem;
   font-size: 1.1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  background: #2563eb;
+  color: #fff;
+  transition: background 0.18s, color 0.18s;
 }
-
-.login-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
-}
-
 .login-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+.btn-secondary {
+  background: #e5e7eb;
+  color: #374151;
+}
+.btn-secondary:hover {
+  background: #d1d5db;
+}
+.btn-primary:hover, .login-button:hover {
+  background: #1e40af;
 }
 
 .login-footer {
@@ -208,19 +210,68 @@ function handleForgotPassword() {
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0,0,0,0.3);
+  background: rgba(0,0,0,0.25);
+  backdrop-filter: blur(3px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
 }
 .modal-content {
-  background: #fff;
-  padding: 2rem;
-  border-radius: 12px;
-  min-width: 320px;
-  max-width: 90vw;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+  background: rgba(255,255,255,0.95);
+  padding: 2.5rem 2rem 2rem 2rem;
+  border-radius: 18px;
+  min-width: 340px;
+  max-width: 95vw;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.modal-content h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e3a8a;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+.input-group input {
+  background: #f3f4f6;
+  border: 1.5px solid #c7d2fe;
+  border-radius: 10px;
+  font-size: 1.05rem;
+  padding: 1rem 1.1rem;
+}
+.input-group input:focus {
+  border-color: #2563eb;
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.7rem;
+  margin-top: 1.2rem;
+}
+.btn-secondary, .btn-primary {
+  font-size: 1rem;
+  font-weight: 500;
+  border-radius: 10px;
+  padding: 0.7rem 1.5rem;
+}
+.btn-primary {
+  background: linear-gradient(90deg, #2563eb, #3b82f6);
+  color: #fff;
+}
+.modal-close {
+  position: absolute;
+  top: 1.1rem;
+  right: 1.1rem;
+  background: none;
+  border: none;
+  font-size: 1.6rem;
+  color: #64748b;
+  cursor: pointer;
+  transition: color 0.18s;
 }
 .info-message {
   color: #2563eb;
@@ -231,21 +282,4 @@ function handleForgotPassword() {
   margin-bottom: 1rem;
   font-size: 0.95rem;
 }
-.btn-secondary {
-  background: #e5e7eb;
-  color: #374151;
-  border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 8px;
-  margin-right: 0.5rem;
-  cursor: pointer;
-}
-.btn-primary {
-  background: #2563eb;
-  color: white;
-  border: none;
-  padding: 0.6rem 1.2rem;
-  border-radius: 8px;
-  cursor: pointer;
-}
-</style> 
+</style>

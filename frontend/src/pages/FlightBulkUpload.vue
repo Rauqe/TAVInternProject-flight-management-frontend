@@ -81,7 +81,7 @@
         </button>
       </div>
       <div class="sample-content">
-        <pre>flightNumber,airline,aircraftType,origin,destination,date,std,sta,flightType,delay,status
+    <pre>flightNumber,airline,aircraftType,origin,destination,date,std,sta,flightType,delay,status
 TK1234,TK,A320,IST,ESB,2024-06-05,10:00,11:15,Passenger,30,Scheduled
 LH1234,LH,B737,MUC,IST,2024-06-05,14:30,17:45,Passenger,0,On Time</pre>
       </div>
@@ -123,23 +123,23 @@ LH1234,LH,B737,MUC,IST,2024-06-05,14:30,17:45,Passenger,0,On Time</pre>
 
       <div class="table-container">
         <table class="preview-table">
-          <thead>
-            <tr>
-              <th>Flight Number</th>
-              <th>Airline</th>
-              <th>Aircraft Type</th>
-              <th>Origin</th>
-              <th>Destination</th>
-              <th>Date</th>
-              <th>STD</th>
-              <th>STA</th>
-              <th>Flight Type</th>
-              <th>Delay (min)</th>
-              <th>Status</th>
+        <thead>
+          <tr>
+            <th>Flight Number</th>
+            <th>Airline</th>
+            <th>Aircraft Type</th>
+            <th>Origin</th>
+            <th>Destination</th>
+            <th>Date</th>
+            <th>STD</th>
+            <th>STA</th>
+            <th>Flight Type</th>
+            <th>Delay (min)</th>
+            <th>Status</th>
               <th>Validation</th>
-            </tr>
-          </thead>
-          <tbody>
+          </tr>
+        </thead>
+        <tbody>
             <tr 
               v-for="(flight, i) in flights" 
               :key="i" 
@@ -148,16 +148,16 @@ LH1234,LH,B737,MUC,IST,2024-06-05,14:30,17:45,Passenger,0,On Time</pre>
                 'row-valid': !hasRowError(i)
               }"
             >
-              <td>{{ flight.flightNumber }}</td>
-              <td>{{ flight.airline }}</td>
-              <td>{{ flight.aircraftType }}</td>
-              <td>{{ flight.origin }}</td>
-              <td>{{ flight.destination }}</td>
-              <td>{{ flight.date }}</td>
-              <td>{{ flight.std }}</td>
-              <td>{{ flight.sta }}</td>
-              <td>{{ flight.flightType }}</td>
-              <td>{{ flight.delay }}</td>
+            <td>{{ flight.flightNumber }}</td>
+            <td>{{ flight.airline }}</td>
+            <td>{{ flight.aircraftType }}</td>
+            <td>{{ flight.origin }}</td>
+            <td>{{ flight.destination }}</td>
+            <td>{{ flight.date }}</td>
+            <td>{{ flight.std }}</td>
+            <td>{{ flight.sta }}</td>
+            <td>{{ flight.flightType }}</td>
+            <td>{{ flight.delay }}</td>
               <td>
                 <span class="status-badge" :class="getStatusClass(flight.status)">
                   {{ flight.status }}
@@ -176,9 +176,9 @@ LH1234,LH,B737,MUC,IST,2024-06-05,14:30,17:45,Passenger,0,On Time</pre>
                   <i class="fas fa-check-circle"></i>
                 </div>
               </td>
-            </tr>
-          </tbody>
-        </table>
+          </tr>
+        </tbody>
+      </table>
       </div>
     </div>
 
@@ -294,21 +294,21 @@ function handleFile(file) {
 
 function parseCSV(text) {
   try {
-    const lines = text.trim().split('\n');
+  const lines = text.trim().split('\n');
     if (lines.length < 2) {
       error.value = 'CSV file must contain at least a header row and one data row';
       return;
     }
     
     const headers = lines[0].split(',').map(h => h.trim());
-    flights.value = lines.slice(1).map(line => {
-      const values = line.split(',');
-      const obj = {};
-      headers.forEach((h, i) => {
+  flights.value = lines.slice(1).map(line => {
+    const values = line.split(',');
+    const obj = {};
+    headers.forEach((h, i) => {
         obj[h] = values[i]?.trim() || '';
-      });
-      return obj;
     });
+    return obj;
+  });
     
     validateAllRows();
   } catch (e) {

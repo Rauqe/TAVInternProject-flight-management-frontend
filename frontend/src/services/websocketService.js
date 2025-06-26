@@ -20,7 +20,7 @@ export function connectFlightWebSocket(onFlightEvent) {
         console.log('[STOMP] Message received:', message.body);
         if (onFlightEvent) {
           try {
-            onFlightEvent(JSON.parse(message.body));
+          onFlightEvent(JSON.parse(message.body));
           } catch (e) {
             console.error('STOMP JSON parse error:', e);
           }

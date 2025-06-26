@@ -18,7 +18,7 @@ export const createUser = async (userData) => {
     console.error("Failed to create user:", error);
     throw error;
   }
-};
+}; 
 
 export const deleteUser = async (userId) => {
   try {

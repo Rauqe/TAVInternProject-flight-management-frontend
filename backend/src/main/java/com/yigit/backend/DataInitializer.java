@@ -2,6 +2,7 @@ package com.yigit.backend;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -28,12 +29,41 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     private FlightRepository flightRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @Override
     public void run(String... args) throws Exception {
         // Only initialize if no data exists
         if (airlineRepository.count() == 0) {
             initializeData();
         }
+        
+        // Initialize users if they don't exist
+        if (userRepository.count() == 0) {
+            initializeUsers();
+        }
+    }
+
+    private void initializeUsers() {
+        // Create admin user
+        User adminUser = User.builder()
+            .username("admin")
+            .password(passwordEncoder.encode("admin123"))
+            .role(Role.ADMIN)
+            .build();
+        userRepository.save(adminUser);
+
+        // Create regular user
+        User regularUser = User.builder()
+            .username("user")
+            .password(passwordEncoder.encode("user123"))
+            .role(Role.USER)
+            .build();
+        userRepository.save(regularUser);
     }
 
     private void initializeData() {

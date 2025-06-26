@@ -68,7 +68,7 @@
       <div class="drawer">
         <h2>{{ isEditMode ? 'Edit Flight' : 'Add Flight' }}</h2>
         <form @submit.prevent="isEditMode ? saveEdit() : handleCreateSubmit()">
-          <div class="form-group"><label>Airline
+           <div class="form-group"><label>Airline
             <select v-model="createForm.airline" required @change="onAirlineChange">
               <option value="">Select</option>
               <option v-for="a in airlines" :key="a.code" :value="a.code">{{ a.name }}</option>
@@ -257,7 +257,7 @@ function closeDrawer() {
     status: 'Scheduled',
     delay: 0
   };
-  errorMsg.value = '';
+    errorMsg.value = '';
   createErrorMsg.value = '';
   createSuccessMsg.value = '';
 }

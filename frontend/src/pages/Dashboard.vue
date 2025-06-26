@@ -147,10 +147,10 @@ export default {
       flights: [],
       systemStatus: { api: false, database: false, kafka: false },
       staticActivities: [
-        { id: 1, text: 'Flight TK1234 scheduled for departure', type: 'Flight Schedule', time: '10:30 AM' },
-        { id: 2, text: 'Route IST-ESB added to network', type: 'Route Management', time: '09:15 AM' },
-        { id: 3, text: 'Monthly performance report generated', type: 'Reporting', time: '08:45 AM' },
-        { id: 4, text: 'System maintenance completed', type: 'System', time: 'Yesterday' }
+  { id: 1, text: 'Flight TK1234 scheduled for departure', type: 'Flight Schedule', time: '10:30 AM' },
+  { id: 2, text: 'Route IST-ESB added to network', type: 'Route Management', time: '09:15 AM' },
+  { id: 3, text: 'Monthly performance report generated', type: 'Reporting', time: '08:45 AM' },
+  { id: 4, text: 'System maintenance completed', type: 'System', time: 'Yesterday' }
       ],
       recentActivities: []
     };
@@ -183,32 +183,32 @@ export default {
       }
     },
     updateRecentActivities() {
-      let dynamic = [];
+  let dynamic = [];
       if (this.flights.length > 0) {
-        // Hem flightDate+std hem id ile sırala, en güncel 5 uçuşu bul
+    // Hem flightDate+std hem id ile sırala, en güncel 5 uçuşu bul
         const sorted = this.flights.slice().sort((a, b) => {
-          const dateA = a.flightDate && a.std ? new Date(a.flightDate + 'T' + a.std) : new Date(0);
-          const dateB = b.flightDate && b.std ? new Date(b.flightDate + 'T' + b.std) : new Date(0);
-          if (dateB - dateA !== 0) return dateB - dateA;
-          if (a.id && b.id) return b.id - a.id;
-          return 0;
-        });
-        dynamic = sorted.slice(0, 5).map(f => ({
-          id: f.id,
-          text: `Flight ${f.flightNumber} ${f.origin?.code || f.originCode} → ${f.destination?.code || f.destinationCode}`,
-          type: f.status === 'Cancelled' ? 'Cancelled' : (f.delay > 0 ? 'Delayed' : 'Scheduled'),
-          time: `${f.flightDate} ${f.std}`
-        }));
-      }
+      const dateA = a.flightDate && a.std ? new Date(a.flightDate + 'T' + a.std) : new Date(0);
+      const dateB = b.flightDate && b.std ? new Date(b.flightDate + 'T' + b.std) : new Date(0);
+      if (dateB - dateA !== 0) return dateB - dateA;
+      if (a.id && b.id) return b.id - a.id;
+      return 0;
+    });
+    dynamic = sorted.slice(0, 5).map(f => ({
+      id: f.id,
+      text: `Flight ${f.flightNumber} ${f.origin?.code || f.originCode} → ${f.destination?.code || f.destinationCode}`,
+      type: f.status === 'Cancelled' ? 'Cancelled' : (f.delay > 0 ? 'Delayed' : 'Scheduled'),
+      time: `${f.flightDate} ${f.std}`
+    }));
+  }
       this.recentActivities = dynamic.length > 0 ? dynamic : [this.staticActivities[0]];
-    }
+}
   },
   async mounted() {
     this.flights = await getFlights();
     connectFlightWebSocket((flightList) => {
       this.flights = flightList;
       this.updateRecentActivities();
-    });
+});
     await this.fetchSystemStatus();
     this.updateRecentActivities();
   },
