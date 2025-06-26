@@ -34,6 +34,7 @@ const services = ref([
   { name: 'api', label: 'API', status: 'down' },
   { name: 'database', label: 'Database (MySQL)', status: 'down' },
   { name: 'kafka', label: 'Kafka', status: 'down' },
+  { name: 'redis', label: 'Redis Cache', status: 'down' },
 ]);
 
 function statusClass(status) {
@@ -48,12 +49,14 @@ async function fetchHealth() {
       { name: 'api', label: 'API', status: data.api ? 'up' : 'down' },
       { name: 'database', label: 'Database (MySQL)', status: data.database ? 'up' : 'down' },
       { name: 'kafka', label: 'Kafka', status: data.kafka ? 'up' : 'down' },
+      { name: 'redis', label: 'Redis Cache', status: data.redis ? 'up' : 'down' },
     ];
   } catch (e) {
     services.value = [
       { name: 'api', label: 'API', status: 'down' },
       { name: 'database', label: 'Database (MySQL)', status: 'down' },
       { name: 'kafka', label: 'Kafka', status: 'down' },
+      { name: 'redis', label: 'Redis Cache', status: 'down' },
     ];
   }
 }

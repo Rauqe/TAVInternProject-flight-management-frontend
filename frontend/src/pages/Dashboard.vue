@@ -29,11 +29,11 @@
             </div>
           </router-link>
           
-          <router-link :to="{ path: '/flights', query: { add: 1 } }" class="nav-card secondary">
-            <div class="card-icon">➕</div>
+          <router-link to="/flights/bulk-upload" class="nav-card secondary">
+            <div class="card-icon">📁</div>
             <div class="card-content">
-              <h3>Add New Flight</h3>
-              <p>Create new flight schedules</p>
+              <h3>Bulk Upload</h3>
+              <p>Upload multiple flights using CSV format</p>
             </div>
           </router-link>
         </div>

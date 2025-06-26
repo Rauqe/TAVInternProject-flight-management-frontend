@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 
 @Component
 public class DataInitializer implements CommandLineRunner {
@@ -103,43 +104,45 @@ public class DataInitializer implements CommandLineRunner {
         flightTypeRepository.saveAll(flightTypes);
 
         // Initialize Flights
-        LocalDate flightDate = LocalDate.now().plusDays(1); // Tomorrow's flights
-        
+        Random random = new Random();
+        LocalDate startDate = LocalDate.of(2025, 1, 1);
+        LocalDate endDate = LocalDate.of(2025, 12, 31);
+        int daysInYear = (int) (endDate.toEpochDay() - startDate.toEpochDay() + 1);
         List<Flight> flights = Arrays.asList(
             // Turkish Airlines flights
-            createFlight("TK1", "TK", "B77W", "IST", "JFK", flightDate, "10:30", "14:45", "PAX", 0),
-            createFlight("TK2", "TK", "B789", "JFK", "IST", flightDate, "16:00", "09:30", "PAX", 15),
-            createFlight("TK3", "TK", "B738", "IST", "FRA", flightDate, "08:15", "11:30", "PAX", 0),
-            createFlight("TK4", "TK", "B738", "FRA", "IST", flightDate, "13:45", "18:00", "PAX", 0),
-            createFlight("TK5", "TK", "A321", "IST", "LHR", flightDate, "09:00", "12:15", "PAX", 30),
+            createFlight("TK1", "TK", "B77W", "IST", "JFK", randomDate2025(random, startDate, daysInYear), "10:30", "14:45", "PAX", 0),
+            createFlight("TK2", "TK", "B789", "JFK", "IST", randomDate2025(random, startDate, daysInYear), "16:00", "09:30", "PAX", 15),
+            createFlight("TK3", "TK", "B738", "IST", "FRA", randomDate2025(random, startDate, daysInYear), "08:15", "11:30", "PAX", 0),
+            createFlight("TK4", "TK", "B738", "FRA", "IST", randomDate2025(random, startDate, daysInYear), "13:45", "18:00", "PAX", 0),
+            createFlight("TK5", "TK", "A321", "IST", "LHR", randomDate2025(random, startDate, daysInYear), "09:00", "12:15", "PAX", 30),
 
             // Lufthansa flights
-            createFlight("LH100", "LH", "A350", "FRA", "JFK", flightDate, "11:00", "14:30", "PAX", 0),
-            createFlight("LH101", "LH", "A350", "JFK", "FRA", flightDate, "17:30", "08:45", "PAX", 0),
-            createFlight("LH102", "LH", "A320", "FRA", "LHR", flightDate, "07:30", "08:45", "PAX", 0),
-            createFlight("LH103", "LH", "A320", "LHR", "FRA", flightDate, "10:15", "13:30", "PAX", 0),
+            createFlight("LH100", "LH", "A350", "FRA", "JFK", randomDate2025(random, startDate, daysInYear), "11:00", "14:30", "PAX", 0),
+            createFlight("LH101", "LH", "A350", "JFK", "FRA", randomDate2025(random, startDate, daysInYear), "17:30", "08:45", "PAX", 0),
+            createFlight("LH102", "LH", "A320", "FRA", "LHR", randomDate2025(random, startDate, daysInYear), "07:30", "08:45", "PAX", 0),
+            createFlight("LH103", "LH", "A320", "LHR", "FRA", randomDate2025(random, startDate, daysInYear), "10:15", "13:30", "PAX", 0),
 
             // British Airways flights
-            createFlight("BA100", "BA", "B77W", "LHR", "JFK", flightDate, "09:30", "12:45", "PAX", 0),
-            createFlight("BA101", "BA", "B77W", "JFK", "LHR", flightDate, "15:00", "04:15", "PAX", 0),
-            createFlight("BA102", "BA", "A320", "LHR", "CDG", flightDate, "08:00", "11:15", "PAX", 0),
+            createFlight("BA100", "BA", "B77W", "LHR", "JFK", randomDate2025(random, startDate, daysInYear), "09:30", "12:45", "PAX", 0),
+            createFlight("BA101", "BA", "B77W", "JFK", "LHR", randomDate2025(random, startDate, daysInYear), "15:00", "04:15", "PAX", 0),
+            createFlight("BA102", "BA", "A320", "LHR", "CDG", randomDate2025(random, startDate, daysInYear), "08:00", "11:15", "PAX", 0),
 
             // Air France flights
-            createFlight("AF100", "AF", "A350", "CDG", "JFK", flightDate, "10:00", "13:15", "PAX", 0),
-            createFlight("AF101", "AF", "A350", "JFK", "CDG", flightDate, "16:30", "05:45", "PAX", 0),
-            createFlight("AF102", "AF", "A320", "CDG", "LHR", flightDate, "07:15", "08:30", "PAX", 0),
+            createFlight("AF100", "AF", "A350", "CDG", "JFK", randomDate2025(random, startDate, daysInYear), "10:00", "13:15", "PAX", 0),
+            createFlight("AF101", "AF", "A350", "JFK", "CDG", randomDate2025(random, startDate, daysInYear), "16:30", "05:45", "PAX", 0),
+            createFlight("AF102", "AF", "A320", "CDG", "LHR", randomDate2025(random, startDate, daysInYear), "07:15", "08:30", "PAX", 0),
 
             // KLM flights
-            createFlight("KL100", "KL", "B789", "AMS", "JFK", flightDate, "09:45", "13:00", "PAX", 0),
-            createFlight("KL101", "KL", "B789", "JFK", "AMS", flightDate, "15:30", "04:45", "PAX", 0),
+            createFlight("KL100", "KL", "B789", "AMS", "JFK", randomDate2025(random, startDate, daysInYear), "09:45", "13:00", "PAX", 0),
+            createFlight("KL101", "KL", "B789", "JFK", "AMS", randomDate2025(random, startDate, daysInYear), "15:30", "04:45", "PAX", 0),
 
             // Iberia flights
-            createFlight("IB100", "IB", "A330", "MAD", "JFK", flightDate, "11:30", "14:45", "PAX", 0),
-            createFlight("IB101", "IB", "A330", "JFK", "MAD", flightDate, "17:00", "06:15", "PAX", 0),
+            createFlight("IB100", "IB", "A330", "MAD", "JFK", randomDate2025(random, startDate, daysInYear), "11:30", "14:45", "PAX", 0),
+            createFlight("IB101", "IB", "A330", "JFK", "MAD", randomDate2025(random, startDate, daysInYear), "17:00", "06:15", "PAX", 0),
 
             // Cargo flights
-            createFlight("TK9001", "TK", "B77W", "IST", "DXB", flightDate, "02:00", "06:30", "CRG", 0),
-            createFlight("LH9001", "LH", "B77W", "FRA", "DOH", flightDate, "01:30", "08:00", "CRG", 0)
+            createFlight("TK9001", "TK", "B77W", "IST", "DXB", randomDate2025(random, startDate, daysInYear), "02:00", "06:30", "CRG", 0),
+            createFlight("LH9001", "LH", "B77W", "FRA", "DOH", randomDate2025(random, startDate, daysInYear), "01:30", "08:00", "CRG", 0)
         );
 
         flightRepository.saveAll(flights);
@@ -161,5 +164,9 @@ public class DataInitializer implements CommandLineRunner {
         flight.setDelay(delay);
         flight.setStatus("Scheduled");
         return flight;
+    }
+
+    private LocalDate randomDate2025(Random random, LocalDate startDate, int daysInYear) {
+        return startDate.plusDays(random.nextInt(daysInYear));
     }
 } 

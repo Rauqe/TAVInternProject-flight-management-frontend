@@ -2,7 +2,7 @@
   <div class="flight-list-container">
     <div class="flight-list-header">
       <h1>Flight List</h1>
-      <button class="create-flight-btn" @click="drawerOpen = true">+ Create Flight</button>
+      <button class="create-flight-btn" @click="() => { drawerOpen = true; isEditMode = false; }">+ Create Flight</button>
     </div>
     <div class="filters">
       <select v-model="filters.airline">
@@ -57,69 +57,18 @@
               <span :class="flight.status.toLowerCase()">{{ flight.status }}</span>
             </td>
             <td>
-              <button @click="editFlight(flight)" class="edit-btn">Edit</button>
+              <button @click="openEditDrawer(flight)" class="edit-btn">Edit</button>
               <button @click="handleDelete(flight.id)" class="delete-btn">Delete</button>
             </td>
           </tr>
         </tbody>
       </table>
     </div>
-    <div v-if="editModal" class="modal-backdrop">
-      <div class="modal">
-        <h2>Edit Flight</h2>
-        <form @submit.prevent="saveEdit">
-          <div class="form-group"><label>Flight Number <input v-model="editFlightData.flightNumber" required /></label></div>
-          <div class="form-group"><label>Airline
-            <select v-model="editFlightData.airline" required>
-              <option value="">Select</option>
-              <option v-for="a in airlines" :key="a.code" :value="a.code">{{ a.name }}</option>
-            </select>
-          </label></div>
-          <div class="form-group"><label>Aircraft Type
-            <select v-model="editFlightData.aircraftType" required>
-              <option value="">Select</option>
-              <option v-for="a in aircraftTypes" :key="a.code" :value="a.code">{{ a.name }}</option>
-            </select>
-          </label></div>
-          <div class="form-group"><label>Origin
-            <select v-model="editFlightData.origin" required>
-              <option value="">Select</option>
-              <option v-for="s in stations" :key="s.code" :value="s.code">{{ s.name }}</option>
-            </select>
-          </label></div>
-          <div class="form-group"><label>Destination
-            <select v-model="editFlightData.destination" required>
-              <option value="">Select</option>
-              <option v-for="s in stations" :key="s.code" :value="s.code">{{ s.name }}</option>
-            </select>
-          </label></div>
-          <div class="form-group"><label>Date <input type="date" v-model="editFlightData.date" required /></label></div>
-          <div class="form-group"><label>STD <input type="time" v-model="editFlightData.std" required /></label></div>
-          <div class="form-group"><label>STA <input type="time" v-model="editFlightData.sta" required /></label></div>
-          <div class="form-group"><label>Flight Type
-            <select v-model="editFlightData.flightType" required>
-              <option value="">Select</option>
-              <option v-for="f in flightTypes" :key="f.code" :value="f.code">{{ f.name }}</option>
-            </select>
-          </label></div>
-          <div class="form-group"><label>Status
-            <select v-model="editFlightData.status" required>
-                <option>Scheduled</option>
-                <option>Cancelled</option>
-            </select>
-          </label></div>
-          <div class="form-group"><label>Delay <input type="number" v-model.number="editFlightData.delay" /></label></div>
-          <button type="submit">Save Changes</button>
-          <button type="button" @click="editModal = false">Cancel</button>
-        </form>
-        <div v-if="errorMsg" class="error-msg">{{ errorMsg }}</div>
-      </div>
-    </div>
-    <div v-if="drawerOpen" class="drawer-backdrop" @click.self="drawerOpen = false">
+    <div v-if="drawerOpen" class="drawer-backdrop" @click.self="closeDrawer">
       <div class="drawer">
-        <h2>Add Flight</h2>
-        <form @submit.prevent="handleCreateSubmit">
-           <div class="form-group"><label>Airline
+        <h2>{{ isEditMode ? 'Edit Flight' : 'Add Flight' }}</h2>
+        <form @submit.prevent="isEditMode ? saveEdit() : handleCreateSubmit()">
+          <div class="form-group"><label>Airline
             <select v-model="createForm.airline" required @change="onAirlineChange">
               <option value="">Select</option>
               <option v-for="a in airlines" :key="a.code" :value="a.code">{{ a.name }}</option>
@@ -170,9 +119,9 @@
           </label></div>
           <div class="form-group"><label>Delay <input type="number" v-model.number="createForm.delay" /></label></div>
           <button type="submit">Save</button>
-          <button type="button" @click="drawerOpen = false">Cancel</button>
+          <button type="button" @click="closeDrawer">Cancel</button>
         </form>
-        <div v-if="createErrorMsg" class="error-msg">{{ createErrorMsg }}</div>
+        <div v-if="createErrorMsg || errorMsg" class="error-msg">{{ createErrorMsg || errorMsg }}</div>
         <div v-if="createSuccessMsg" class="success-msg">{{ createSuccessMsg }}</div>
       </div>
     </div>
@@ -191,6 +140,7 @@ const flightTypes = ref([]);
 const aircraftTypes = ref([]);
 const errorMsg = ref('');
 const drawerOpen = ref(false);
+const isEditMode = ref(false);
 const createForm = ref({
   flightNumber: '',
   airline: '',
@@ -201,9 +151,10 @@ const createForm = ref({
   std: '',
   sta: '',
   flightType: '',
-  delay: 0,
   status: 'Scheduled',
+  delay: 0
 });
+const editFlightId = ref(null);
 const createErrorMsg = ref('');
 const createSuccessMsg = ref('');
 
@@ -214,9 +165,6 @@ const filters = ref({
   flightType: '',
   search: '',
 });
-
-const editModal = ref(false);
-const editFlightData = ref({});
 
 async function fetchData() {
     try {
@@ -263,41 +211,64 @@ async function handleDelete(id) {
     }
 }
 
-function editFlight(flight) {
-  errorMsg.value = '';
-  editFlightData.value = {
-    id: flight.id,
+function openEditDrawer(flight) {
+  isEditMode.value = true;
+  drawerOpen.value = true;
+  editFlightId.value = flight.id;
+
+  // Kod veya isim gelirse, kodunu bul
+  let flightTypeCode = '';
+  if (typeof flight.flightType === 'object' && flight.flightType.code) {
+    flightTypeCode = flight.flightType.code;
+  } else if (typeof flight.flightType === 'string') {
+    const found = flightTypes.value.find(f => f.code === flight.flightType || f.name === flight.flightType);
+    flightTypeCode = found ? found.code : flight.flightType;
+  }
+
+  createForm.value = {
     flightNumber: flight.flightNumber,
-    airline: flight.airline?.code,
-    aircraftType: flight.aircraftType?.code,
-    origin: flight.origin?.code,
-    destination: flight.destination?.code,
-    date: flight.flightDate,
+    airline: flight.airline?.code || flight.airline,
+    aircraftType: flight.aircraftType?.code || flight.aircraftType,
+    origin: flight.origin?.code || flight.origin,
+    destination: flight.destination?.code || flight.destination,
+    date: flight.flightDate || flight.date,
     std: flight.std,
     sta: flight.sta,
-    flightType: flight.flightType,
-    delay: flight.delay || 0,
+    flightType: flightTypeCode,
     status: flight.status,
+    delay: flight.delay || 0
   };
-  editModal.value = true;
 }
 
-async function saveEdit() {
-    errorMsg.value = '';
-    try {
-        await updateFlight(editFlightData.value.id, editFlightData.value);
-  editModal.value = false;
-        fetchData(); // Refresh list
-    } catch(e) {
-        errorMsg.value = "Failed to update flight: " + e.message;
-    }
+function closeDrawer() {
+  drawerOpen.value = false;
+  isEditMode.value = false;
+  editFlightId.value = null;
+  createForm.value = {
+    flightNumber: '',
+    airline: '',
+    aircraftType: '',
+    origin: '',
+    destination: '',
+    date: '',
+    std: '',
+    sta: '',
+    flightType: '',
+    status: 'Scheduled',
+    delay: 0
+  };
+  errorMsg.value = '';
+  createErrorMsg.value = '';
+  createSuccessMsg.value = '';
 }
 
 async function handleCreateSubmit() {
   createErrorMsg.value = '';
   createSuccessMsg.value = '';
   try {
-    await addFlight(createForm.value);
+    const selectedType = flightTypes.value.find(f => f.code === createForm.value.flightType);
+    const flightTypeName = selectedType ? selectedType.name : createForm.value.flightType;
+    await addFlight({ ...createForm.value, flightType: flightTypeName });
     createSuccessMsg.value = 'Flight created successfully!';
     drawerOpen.value = false;
     fetchData();
@@ -314,6 +285,33 @@ function onAirlineChange() {
 function getFlightTypeAbbreviation(flightType) {
   const type = flightTypes.value.find(t => t.code === flightType);
   return type ? type.code : flightType;
+}
+
+async function saveEdit() {
+  errorMsg.value = '';
+  try {
+    const selectedType = flightTypes.value.find(f => f.code === createForm.value.flightType);
+    const flightTypeName = selectedType ? selectedType.name : createForm.value.flightType;
+    await updateFlight(editFlightId.value, { ...createForm.value, flightType: flightTypeName });
+    drawerOpen.value = false;
+    isEditMode.value = false;
+    editFlightId.value = null;
+    createForm.value = {
+      flightNumber: '',
+      airline: '',
+      aircraftType: '',
+      origin: '',
+      destination: '',
+      date: '',
+      std: '',
+      sta: '',
+      flightType: '',
+      status: 'Scheduled',
+      delay: 0
+    };
+  } catch (e) {
+    errorMsg.value = e.message || 'Update failed';
+  }
 }
 </script>
 

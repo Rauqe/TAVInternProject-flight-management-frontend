@@ -23,30 +23,35 @@
         <label style="margin-left:1rem">End Date: <input type="date" v-model="endDate" /></label>
         <button @click="exportCSV" style="margin-left:1rem">Export CSV</button>
       </div>
-      <input type="date" v-model="selectedDate" />
       <table>
         <thead>
           <tr>
             <th>Flight Number</th>
             <th>Airline</th>
+            <th>Aircraft Type</th>
             <th>Origin</th>
             <th>Destination</th>
             <th>Date</th>
             <th>STD</th>
             <th>STA</th>
             <th>Flight Type</th>
+            <th>Delay (min)</th>
+            <th>Status</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="f in dailyFlights" :key="f.id">
+          <tr v-for="f in filteredFlights" :key="f.id">
             <td>{{ f.flightNumber }}</td>
-            <td>{{ f.airline?.name || f.airline?.code || f.airline }}</td>
-            <td>{{ f.origin?.name || f.origin?.code || f.origin }}</td>
-            <td>{{ f.destination?.name || f.destination?.code || f.destination }}</td>
+            <td>{{ f.airline?.code || f.airline?.name || f.airline }}</td>
+            <td>{{ f.aircraftType || 'A320' }}</td>
+            <td>{{ f.origin?.code || f.origin?.name || f.origin }}</td>
+            <td>{{ f.destination?.code || f.destination?.name || f.destination }}</td>
             <td>{{ f.date || f.flightDate }}</td>
             <td>{{ f.std }}</td>
             <td>{{ f.sta }}</td>
-            <td>{{ f.flightType }}</td>
+            <td>{{ f.flightType || 'Passenger' }}</td>
+            <td>{{ f.delay || 0 }}</td>
+            <td>{{ f.status || 'Scheduled' }}</td>
           </tr>
         </tbody>
       </table>
@@ -109,14 +114,18 @@ import DelayRateChart from '../components/charts/DelayRateChart.vue';
 import DailyTrendChart from '../components/charts/DailyTrendChart.vue';
 
 const flights = ref([]);
-const selectedDate = ref(new Date().toISOString().split('T')[0]);
 const startDate = ref(new Date().toISOString().split('T')[0]);
 const endDate = ref(new Date().toISOString().split('T')[0]);
 
 onMounted(async () => {
   flights.value = await getFlights();
 });
-const dailyFlights = computed(() => flights.value.filter(f => (f.date || f.flightDate) === selectedDate.value));
+const filteredFlights = computed(() => {
+  return flights.value.filter(f => {
+    const date = f.date || f.flightDate;
+    return date >= startDate.value && date <= endDate.value;
+  });
+});
 const delayedFlights = computed(() => flights.value.filter(f => f.delay && f.delay > 0));
 const totalFlights = computed(() => flights.value.length);
 const delayedCount = computed(() => flights.value.filter(f => f.delay && f.delay > 0).length);
@@ -163,7 +172,7 @@ const dailyTrendData = computed(() => {
 function exportCSV() {
   if (!startDate.value || !endDate.value) return;
   const rows = [
-    ['Flight Number','Airline','Origin','Destination','Date','STD','STA','Flight Type'],
+    ['flightNumber','airline','aircraftType','origin','destination','date','std','sta','flightType','delay','status'],
     ...flights.value
       .filter(f => {
         const date = f.date || f.flightDate;
@@ -171,13 +180,16 @@ function exportCSV() {
       })
       .map(f => [
         f.flightNumber,
-        f.airline?.name || f.airline?.code || f.airline,
-        f.origin?.name || f.origin?.code || f.origin,
-        f.destination?.name || f.destination?.code || f.destination,
+        f.airline?.code || f.airline?.name || f.airline,
+        f.aircraftType || 'A320',
+        f.origin?.code || f.origin?.name || f.origin,
+        f.destination?.code || f.destination?.name || f.destination,
         f.date || f.flightDate,
         f.std,
         f.sta,
-        f.flightType
+        f.flightType || 'Passenger',
+        f.delay || 0,
+        f.status || 'Scheduled' 
       ])
   ];
   const csv = rows.map(r => r.join(',')).join('\n');

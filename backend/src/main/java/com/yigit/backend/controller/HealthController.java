@@ -5,6 +5,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.data.redis.core.RedisTemplate;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/health")
@@ -17,26 +20,35 @@ public class HealthController {
     @Autowired
     private KafkaTemplate<String, String> kafkaTemplate;
 
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
+
     @GetMapping
-    public ResponseEntity<?> health() {
-        boolean dbUp = true;
-        boolean kafkaUp = true;
-
-        // DB kontrolü
+    public Map<String, Object> health() {
+        Map<String, Object> status = new HashMap<>();
+        status.put("api", true);
         try {
+            // DB health
             jdbcTemplate.queryForObject("SELECT 1", Integer.class);
+            status.put("database", true);
         } catch (Exception e) {
-            dbUp = false;
+            status.put("database", false);
         }
-
-        // Kafka kontrolü
         try {
+            // Kafka health
             kafkaTemplate.partitionsFor("flight-updates");
+            status.put("kafka", true);
         } catch (Exception e) {
-            kafkaUp = false;
+            status.put("kafka", false);
         }
-
-        return ResponseEntity.ok(new HealthStatusResponse(true, dbUp, kafkaUp));
+        try {
+            redisTemplate.opsForValue().set("health_check", "ok");
+            String val = (String) redisTemplate.opsForValue().get("health_check");
+            status.put("redis", "ok".equals(val));
+        } catch (Exception e) {
+            status.put("redis", false);
+        }
+        return status;
     }
 
     static class HealthStatusResponse {
