@@ -2,9 +2,9 @@
   <div class="flight-archive">
     <h1>Flight Archive</h1>
     <div class="filters">
-      <label>Start Date <input type="date" v-model="startDate" /></label>
-      <label>End Date <input type="date" v-model="endDate" /></label>
-      <button @click="filterArchive">Filter</button>
+      <label>Start Date <el-date-picker v-model="startDate" type="date" placeholder="Start Date" style="width: 140px" /></label>
+      <label>End Date <el-date-picker v-model="endDate" type="date" placeholder="End Date" style="width: 140px" /></label>
+      <el-button type="primary" @click="filterArchive">Filter</el-button>
     </div>
     <table>
       <thead>
@@ -38,6 +38,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { getFlights } from '../services/flightService';
+import { ElButton, ElDatePicker } from 'element-plus';
 const archive = ref([]);
 const startDate = ref('');
 const endDate = ref('');

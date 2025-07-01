@@ -1,85 +1,221 @@
 <template>
   <div class="flight-create">
-    <h1>Add Flight</h1>
-    <form @submit.prevent="handleSubmit" @keydown.ctrl.s.prevent="handleSubmit" tabindex="0">
-      <div class="form-grid">
-        <div class="form-group">
-          <label for="flightNumber">Flight Number</label>
-          <input id="flightNumber" v-model="form.flightNumber" required aria-label="Flight Number" tabindex="1" />
-          <div v-if="errors.flightNumber" class="error-msg">{{ errors.flightNumber }}</div>
+    <el-card class="form-card">
+      <template #header>
+        <div class="card-header">
+          <h2>Add New Flight</h2>
         </div>
-        <div class="form-group">
-          <label for="airline">Airline</label>
-          <select id="airline" v-model="form.airline" required aria-label="Airline">
-            <option value="">Select</option>
-            <option v-for="a in airlines" :key="a.code" :value="a.code">{{ a.name }}</option>
-          </select>
-          <div v-if="errors.airline" class="error-msg">{{ errors.airline }}</div>
-        </div>
-        <div class="form-group">
-          <label for="aircraftType">Aircraft Type</label>
-          <select id="aircraftType" v-model="form.aircraftType" required aria-label="Aircraft Type">
-            <option value="">Select</option>
-            <option v-for="a in aircraftTypes" :key="a.code" :value="a.code">{{ a.name }}</option>
-          </select>
-          <div v-if="errors.aircraftType" class="error-msg">{{ errors.aircraftType }}</div>
-        </div>
-        <div class="form-group">
-          <label for="origin">Origin (ICAO)</label>
-          <input id="origin" v-model="form.origin" maxlength="4" required aria-label="Origin" tabindex="4" />
-          <div v-if="errors.origin" class="error-msg">{{ errors.origin }}</div>
-        </div>
-        <div class="form-group">
-          <label for="destination">Destination (ICAO)</label>
-          <input id="destination" v-model="form.destination" maxlength="4" required aria-label="Destination" tabindex="5" />
-          <div v-if="errors.destination" class="error-msg">{{ errors.destination }}</div>
-        </div>
-        <div class="form-group">
-          <label for="date">Flight Date</label>
-          <input id="date" type="date" v-model="form.date" required aria-label="Flight Date" :min="today" tabindex="6" />
-          <div v-if="errors.date" class="error-msg">{{ errors.date }}</div>
-        </div>
-        <div class="form-group">
-          <label for="std">STD</label>
-          <input id="std" type="time" v-model="form.std" required aria-label="STD" tabindex="7" />
-          <div v-if="errors.std" class="error-msg">{{ errors.std }}</div>
-        </div>
-        <div class="form-group">
-          <label for="sta">STA</label>
-          <input id="sta" type="time" v-model="form.sta" required aria-label="STA" tabindex="8" />
-          <div v-if="errors.sta" class="error-msg">{{ errors.sta }}</div>
-        </div>
-        <div class="form-group">
-          <label>Flight Type</label>
-          <div>
-            <label><input type="radio" value="Passenger" v-model="form.flightType" required /> Passenger</label>
-            <label><input type="radio" value="Cargo" v-model="form.flightType" /> Cargo</label>
-            <label><input type="radio" value="Position" v-model="form.flightType" /> Position</label>
-          </div>
-          <div v-if="errors.flightType" class="error-msg">{{ errors.flightType }}</div>
-        </div>
-        <div class="form-group">
-          <label for="delay">Delay (min)</label>
-          <input id="delay" type="number" v-model.number="form.delay" min="0" aria-label="Delay (min)" tabindex="9" />
-        </div>
-        <div class="form-group">
-          <label for="status">Status</label>
-          <select id="status" v-model="form.status" aria-label="Status" tabindex="10">
-            <option value="Scheduled">Scheduled</option>
-            <option value="Cancelled">Cancelled</option>
-          </select>
-        </div>
-      </div>
-      <button type="submit">Save</button>
-      <div v-if="success" class="success-toast">Flight saved successfully!</div>
-      <div v-if="error" class="error-toast" aria-live="assertive">{{ error }}</div>
-    </form>
+      </template>
+      
+      <el-form 
+        ref="formRef"
+        :model="form" 
+        :rules="rules"
+        label-width="140px"
+        @submit.prevent="handleSubmit"
+      >
+        <el-row :gutter="20">
+          <!-- Flight Number -->
+          <el-col :span="12">
+            <el-form-item label="Flight Number" prop="flightNumber">
+              <el-input 
+                v-model="form.flightNumber" 
+                placeholder="e.g. TK1234"
+                maxlength="6"
+                show-word-limit
+              />
+            </el-form-item>
+          </el-col>
+          
+          <!-- Airline -->
+          <el-col :span="12">
+            <el-form-item label="Airline" prop="airline">
+              <el-select 
+                v-model="form.airline" 
+                placeholder="Select Airline"
+                style="width: 100%"
+              >
+                <el-option 
+                  v-for="airline in airlines" 
+                  :key="airline.code" 
+                  :label="airline.name" 
+                  :value="airline.code" 
+                />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="20">
+          <!-- Aircraft Type -->
+          <el-col :span="12">
+            <el-form-item label="Aircraft Type" prop="aircraftType">
+              <el-select 
+                v-model="form.aircraftType" 
+                placeholder="Select Aircraft Type"
+                style="width: 100%"
+              >
+                <el-option 
+                  v-for="aircraft in aircraftTypes" 
+                  :key="aircraft.code" 
+                  :label="aircraft.name" 
+                  :value="aircraft.code" 
+                />
+              </el-select>
+            </el-form-item>
+          </el-col>
+          
+          <!-- Flight Date -->
+          <el-col :span="12">
+            <el-form-item label="Flight Date" prop="date">
+              <el-date-picker
+                v-model="form.date"
+                type="date"
+                placeholder="Select Date"
+                :disabled-date="disabledDate"
+                style="width: 100%"
+              />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="20">
+          <!-- Origin -->
+          <el-col :span="12">
+            <el-form-item label="Origin (ICAO)" prop="origin">
+              <el-input 
+                v-model="form.origin" 
+                placeholder="e.g. IST"
+                maxlength="4"
+                show-word-limit
+              />
+            </el-form-item>
+          </el-col>
+          
+          <!-- Destination -->
+          <el-col :span="12">
+            <el-form-item label="Destination (ICAO)" prop="destination">
+              <el-input 
+                v-model="form.destination" 
+                placeholder="e.g. JFK"
+                maxlength="4"
+                show-word-limit
+              />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="20">
+          <!-- STD -->
+          <el-col :span="12">
+            <el-form-item label="STD" prop="std">
+              <el-time-picker
+                v-model="form.std"
+                placeholder="Select Time"
+                format="HH:mm"
+                style="width: 100%"
+              />
+            </el-form-item>
+          </el-col>
+          
+          <!-- STA -->
+          <el-col :span="12">
+            <el-form-item label="STA" prop="sta">
+              <el-time-picker
+                v-model="form.sta"
+                placeholder="Select Time"
+                format="HH:mm"
+                style="width: 100%"
+              />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="20">
+          <!-- Flight Type -->
+          <el-col :span="12">
+            <el-form-item label="Flight Type" prop="flightType">
+              <el-radio-group v-model="form.flightType">
+                <el-radio label="Passenger">Passenger</el-radio>
+                <el-radio label="Cargo">Cargo</el-radio>
+                <el-radio label="Position">Position</el-radio>
+              </el-radio-group>
+            </el-form-item>
+          </el-col>
+          
+          <!-- Delay -->
+          <el-col :span="12">
+            <el-form-item label="Delay (min)" prop="delay">
+              <el-input-number
+                v-model="form.delay"
+                :min="0"
+                :max="1440"
+                placeholder="0"
+                style="width: 100%"
+              />
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-row :gutter="20">
+          <!-- Status -->
+          <el-col :span="12">
+            <el-form-item label="Status" prop="status">
+              <el-select 
+                v-model="form.status" 
+                placeholder="Select Status"
+                style="width: 100%"
+              >
+                <el-option label="Scheduled" value="Scheduled" />
+                <el-option label="Cancelled" value="Cancelled" />
+              </el-select>
+            </el-form-item>
+          </el-col>
+        </el-row>
+
+        <el-form-item>
+          <el-button type="primary" @click="handleSubmit" :loading="loading">
+            <el-icon><Plus /></el-icon>
+            Save Flight
+          </el-button>
+          <el-button @click="resetForm">
+            <el-icon><Refresh /></el-icon>
+            Reset
+          </el-button>
+        </el-form-item>
+      </el-form>
+    </el-card>
+
+    <!-- Success Message -->
+    <el-dialog
+      v-model="success"
+      title="Success"
+      width="30%"
+      :show-close="false"
+    >
+      <span>
+        <el-icon color="#67C23A" size="24"><CircleCheckFilled /></el-icon>
+        Flight saved successfully!
+      </span>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button type="primary" @click="success = false">
+            OK
+          </el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
+import { ElMessage } from 'element-plus';
+import { Plus, Refresh, CircleCheckFilled } from '@element-plus/icons-vue';
 import { addFlight, getAirlines, getAircraftTypes } from '../services/flightService';
+
+const formRef = ref();
+const loading = ref(false);
 
 const form = ref({
   flightNumber: '',
@@ -97,109 +233,159 @@ const form = ref({
 
 const airlines = ref([]);
 const aircraftTypes = ref([]);
-
-const today = computed(() => new Date().toISOString().split('T')[0]);
 const success = ref(false);
-const error = ref('');
-const errors = ref({});
 
-onMounted(async () => {
-  airlines.value = await getAirlines();
-  aircraftTypes.value = await getAircraftTypes();
+// Validation rules
+const rules = ref({
+  flightNumber: [
+    { required: true, message: 'Flight number is required', trigger: 'blur' },
+    { 
+      pattern: /^[A-Z]{2}\d{3,4}$/, 
+      message: 'Invalid flight number format (e.g. TK1234)', 
+      trigger: 'blur' 
+    }
+  ],
+  airline: [
+    { required: true, message: 'Airline is required', trigger: 'change' }
+  ],
+  aircraftType: [
+    { required: true, message: 'Aircraft type is required', trigger: 'change' }
+  ],
+  origin: [
+    { required: true, message: 'Origin is required', trigger: 'blur' },
+    { min: 3, max: 4, message: 'ICAO code must be 3-4 characters', trigger: 'blur' }
+  ],
+  destination: [
+    { required: true, message: 'Destination is required', trigger: 'blur' },
+    { min: 3, max: 4, message: 'ICAO code must be 3-4 characters', trigger: 'blur' }
+  ],
+  date: [
+    { required: true, message: 'Flight date is required', trigger: 'change' }
+  ],
+  std: [
+    { required: true, message: 'STD is required', trigger: 'change' }
+  ],
+  sta: [
+    { required: true, message: 'STA is required', trigger: 'change' }
+  ],
+  flightType: [
+    { required: true, message: 'Flight type is required', trigger: 'change' }
+  ]
 });
 
-function validate() {
-  errors.value = {};
-  if (!form.value.flightNumber.match(/^[A-Z]{2}\d{3,4}$/)) {
-    errors.value.flightNumber = 'Invalid flight number format (e.g. TK1234)';
+const disabledDate = (time) => {
+  return time.getTime() < Date.now() - 8.64e7; // Disable past dates
+};
+
+onMounted(async () => {
+  try {
+    airlines.value = await getAirlines();
+    aircraftTypes.value = await getAircraftTypes();
+  } catch (error) {
+    ElMessage.error('Failed to load reference data');
   }
-  if (!form.value.airline) errors.value.airline = 'Airline is required';
-  if (!form.value.aircraftType) errors.value.aircraftType = 'Aircraft type is required';
-  if (!form.value.origin) errors.value.origin = 'Origin is required';
-  if (!form.value.destination) errors.value.destination = 'Destination is required';
-  if (!form.value.date) errors.value.date = 'Date is required';
-  if (!form.value.std) errors.value.std = 'STD is required';
-  if (!form.value.sta) errors.value.sta = 'STA is required';
-  if (!form.value.flightType) errors.value.flightType = 'Flight type is required';
-  if (form.value.sta && form.value.std && form.value.sta < form.value.std) {
-    errors.value.sta = 'STA cannot be before STD';
+});
+
+// Custom validation for STA vs STD
+watch([() => form.value.sta, () => form.value.std], ([sta, std]) => {
+  if (sta && std && sta < std) {
+    ElMessage.warning('STA cannot be before STD');
+  }
+});
+
+async function handleSubmit() {
+  if (!formRef.value) return;
+  
+  try {
+    await formRef.value.validate();
+    
+    // Additional validation for STA vs STD
+    if (form.value.sta && form.value.std && form.value.sta < form.value.std) {
+      ElMessage.error('STA cannot be before STD');
+      return;
+    }
+    
+    loading.value = true;
+    await addFlight(form.value);
+    success.value = true;
+    resetForm();
+    ElMessage.success('Flight saved successfully!');
+  } catch (error) {
+    if (error.message) {
+      ElMessage.error(error.message);
+    } else {
+      ElMessage.error('Failed to save flight');
+    }
+  } finally {
+    loading.value = false;
   }
 }
 
-watch(form, validate, { deep: true });
-
-async function handleSubmit() {
-  error.value = '';
-  success.value = false;
-  try {
-    validate();
-    if (Object.keys(errors.value).length > 0) {
-      error.value = 'There are errors in the form. Please fill all fields correctly.';
-      return;
-    }
-    await addFlight(form.value);
-    success.value = true;
-    Object.keys(form.value).forEach(k => form.value[k] = '');
-  } catch (e) {
-    error.value = e.message;
+function resetForm() {
+  if (formRef.value) {
+    formRef.value.resetFields();
   }
+  form.value = {
+    flightNumber: '',
+    airline: '',
+    aircraftType: '',
+    origin: '',
+    destination: '',
+    date: '',
+    std: '',
+    sta: '',
+    flightType: '',
+    delay: 0,
+    status: 'Scheduled',
+  };
 }
 </script>
 
 <style scoped>
 .flight-create {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 2rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.flight-create > form {
-  width: 100%;
-  max-width: 700px;
+  padding: 20px;
+  max-width: 1200px;
   margin: 0 auto;
 }
-.form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
+
+.form-card {
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
 }
-.form-group {
+
+.card-header {
   display: flex;
-  flex-direction: column;
-  margin-bottom: 1rem;
+  justify-content: space-between;
+  align-items: center;
 }
-.success-toast {
-  color: #155724;
-  background: #d4edda;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  margin-top: 1rem;
+
+.card-header h2 {
+  margin: 0;
+  color: #303133;
+  font-size: 18px;
+  font-weight: 600;
 }
-.error-toast {
-  color: #721c24;
-  background: #f8d7da;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  margin-top: 1rem;
+
+.el-form {
+  margin-top: 20px;
 }
-button[type="submit"] {
-  margin-top: 1rem;
-  padding: 0.75rem 2rem;
-  font-size: 1rem;
-  background: #1976d2;
-  color: #fff;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+
+.el-form-item {
+  margin-bottom: 20px;
 }
-button[type="submit"]:hover {
-  background: #1565c0;
+
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
 }
-.error-msg {
-  color: #d32f2f;
-  font-size: 0.95em;
-  margin-top: 0.2rem;
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .el-col {
+    margin-bottom: 10px;
+  }
+  
+  .flight-create {
+    padding: 10px;
+  }
 }
 </style> 

@@ -18,89 +18,72 @@
 
     <div class="report-section">
       <h2>Daily Flight List</h2>
-      <div style="margin-bottom:1rem">
-        <label>Start Date: <input type="date" v-model="startDate" /></label>
-        <label style="margin-left:1rem">End Date: <input type="date" v-model="endDate" /></label>
-        <button @click="exportCSV" style="margin-left:1rem">Export CSV</button>
+      <div style="margin-bottom:1rem; display: flex; align-items: center; gap: 1rem;">
+        <el-date-picker v-model="startDate" type="date" placeholder="Start Date" style="width: 140px" />
+        <el-date-picker v-model="endDate" type="date" placeholder="End Date" style="width: 140px" />
+        <el-button type="primary" @click="exportCSV">Export CSV</el-button>
       </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Flight Number</th>
-            <th>Airline</th>
-            <th>Aircraft Type</th>
-            <th>Origin</th>
-            <th>Destination</th>
-            <th>Date</th>
-            <th>STD</th>
-            <th>STA</th>
-            <th>Flight Type</th>
-            <th>Delay (min)</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="f in filteredFlights" :key="f.id">
-            <td>{{ f.flightNumber }}</td>
-            <td>{{ f.airline?.code || f.airline?.name || f.airline }}</td>
-            <td>{{ f.aircraftType || 'A320' }}</td>
-            <td>{{ f.origin?.code || f.origin?.name || f.origin }}</td>
-            <td>{{ f.destination?.code || f.destination?.name || f.destination }}</td>
-            <td>{{ f.date || f.flightDate }}</td>
-            <td>{{ f.std }}</td>
-            <td>{{ f.sta }}</td>
-            <td>{{ f.flightType || 'Passenger' }}</td>
-            <td>{{ f.delay || 0 }}</td>
-            <td>{{ f.status || 'Scheduled' }}</td>
-          </tr>
-        </tbody>
-      </table>
+      <el-table :data="filteredFlights" style="width: 100%" :empty-text="'No flights found'">
+        <el-table-column prop="flightNumber" label="Flight Number" />
+        <el-table-column prop="airline" label="Airline">
+          <template #default="scope">{{ scope.row.airline?.code || scope.row.airline?.name || scope.row.airline }}</template>
+        </el-table-column>
+        <el-table-column prop="aircraftType" label="Aircraft Type">
+          <template #default="scope">{{ scope.row.aircraftType || 'A320' }}</template>
+        </el-table-column>
+        <el-table-column prop="origin" label="Origin">
+          <template #default="scope">{{ scope.row.origin?.code || scope.row.origin?.name || scope.row.origin }}</template>
+        </el-table-column>
+        <el-table-column prop="destination" label="Destination">
+          <template #default="scope">{{ scope.row.destination?.code || scope.row.destination?.name || scope.row.destination }}</template>
+        </el-table-column>
+        <el-table-column prop="date" label="Date">
+          <template #default="scope">{{ scope.row.date || scope.row.flightDate }}</template>
+        </el-table-column>
+        <el-table-column prop="std" label="STD" />
+        <el-table-column prop="sta" label="STA" />
+        <el-table-column prop="flightType" label="Flight Type">
+          <template #default="scope">{{ scope.row.flightType || 'Passenger' }}</template>
+        </el-table-column>
+        <el-table-column prop="delay" label="Delay (min)">
+          <template #default="scope">{{ scope.row.delay || 0 }}</template>
+        </el-table-column>
+        <el-table-column prop="status" label="Status">
+          <template #default="scope">{{ scope.row.status || 'Scheduled' }}</template>
+        </el-table-column>
+      </el-table>
     </div>
     <div class="report-section">
       <h2>Delayed Flights</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Flight Number</th>
-            <th>Origin</th>
-            <th>Destination</th>
-            <th>STD</th>
-            <th>STA</th>
-            <th>Delay (min)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="f in delayedFlights" :key="f.id">
-            <td>{{ f.flightNumber }}</td>
-            <td>{{ f.origin?.name || f.origin?.code || f.origin }}</td>
-            <td>{{ f.destination?.name || f.destination?.code || f.destination }}</td>
-            <td>{{ f.std }}</td>
-            <td>{{ f.sta }}</td>
-            <td>{{ f.delay }}</td>
-          </tr>
-        </tbody>
-      </table>
+      <el-table :data="delayedFlights" style="width: 100%" :empty-text="'No delayed flights'">
+        <el-table-column prop="flightNumber" label="Flight Number" />
+        <el-table-column prop="origin" label="Origin">
+          <template #default="scope">{{ scope.row.origin?.name || scope.row.origin?.code || scope.row.origin }}</template>
+        </el-table-column>
+        <el-table-column prop="destination" label="Destination">
+          <template #default="scope">{{ scope.row.destination?.name || scope.row.destination?.code || scope.row.destination }}</template>
+        </el-table-column>
+        <el-table-column prop="std" label="STD" />
+        <el-table-column prop="sta" label="STA" />
+        <el-table-column prop="delay" label="Delay (min)" />
+      </el-table>
     </div>
     <div class="report-section">
-      <h2>Summary Statistics</h2>
-      <div class="summary-statistics">
-        <div class="stat-box">
-          <div class="stat-title">Total Flights</div>
-          <div class="stat-value">{{ totalFlights }}</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-title">Delay Rate</div>
-          <div class="stat-value">{{ delayRate }}%</div>
-        </div>
-        <div class="stat-box">
-          <div class="stat-title">Cancel Rate</div>
-          <div class="stat-value">{{ cancelRate }}%</div>
-        </div>
-      </div>
-      <div class="chart">
-        <div class="bar" :style="{width: delayRate + '%'}">Delay</div>
-        <div class="bar cancel" :style="{width: cancelRate + '%'}">Cancel</div>
-      </div>
+      <h2>Cancelled Flights</h2>
+      <el-table :data="cancelledFlights" style="width: 100%" :empty-text="'No cancelled flights'">
+        <el-table-column prop="flightNumber" label="Flight Number" />
+        <el-table-column prop="origin" label="Origin">
+          <template #default="scope">{{ scope.row.origin?.name || scope.row.origin?.code || scope.row.origin }}</template>
+        </el-table-column>
+        <el-table-column prop="destination" label="Destination">
+          <template #default="scope">{{ scope.row.destination?.name || scope.row.destination?.code || scope.row.destination }}</template>
+        </el-table-column>
+        <el-table-column prop="std" label="STD" />
+        <el-table-column prop="sta" label="STA" />
+        <el-table-column prop="status" label="Status" />
+      </el-table>
+    </div>
+    <div class="report-section">
     </div>
   </div>
 </template>
@@ -112,6 +95,7 @@ import FlightStatusChart from '../components/charts/FlightStatusChart.vue';
 import TotalFlightsBarChart from '../components/charts/TotalFlightsBarChart.vue';
 import DelayRateChart from '../components/charts/DelayRateChart.vue';
 import DailyTrendChart from '../components/charts/DailyTrendChart.vue';
+import { ElButton, ElTable, ElTableColumn, ElDatePicker } from 'element-plus';
 
 const flights = ref([]);
 const startDate = ref(new Date().toISOString().split('T')[0]);
@@ -132,6 +116,7 @@ const delayedCount = computed(() => flights.value.filter(f => f.delay && f.delay
 const cancelledCount = computed(() => flights.value.filter(f => f.status === 'Cancelled').length);
 const delayRate = computed(() => totalFlights.value ? Math.round((delayedCount.value / totalFlights.value) * 100) : 0);
 const cancelRate = computed(() => totalFlights.value ? Math.round((cancelledCount.value / totalFlights.value) * 100) : 0);
+const cancelledFlights = computed(() => flights.value.filter(f => f.status === 'Cancelled'));
 
 // Chart Data
 const flightStatusData = computed(() => ({
@@ -232,18 +217,6 @@ th, td {
 }
 th {
   background: #f5f5f5;
-}
-.summary-statistics {
-  display: flex;
-  gap: 2rem;
-  margin-bottom: 1.5rem;
-}
-.stat-box {
-  background: #f5f5f5;
-  border-radius: 8px;
-  padding: 1rem 2rem;
-  text-align: center;
-  min-width: 120px;
 }
 .stat-title {
   font-size: 1rem;

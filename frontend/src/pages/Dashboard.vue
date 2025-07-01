@@ -1,137 +1,71 @@
 <template>
-  <div class="airline-dashboard">
-    <div class="dashboard-header">
-      <div class="header-content">
-        <h1>Flight Management System</h1>
-        <p class="subtitle">TAV Airlines - Operations Dashboard</p>
-      </div>
-      <div class="header-stats">
-        <div class="stat-item">
-          <span class="stat-number">{{ totalFlights }}</span>
-          <span class="stat-label">Active Flights</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-number">{{ onTimeRate }}%</span>
-          <span class="stat-label">On-Time Performance</span>
-        </div>
-      </div>
+  <div class="dashboard-elplus">
+    <div class="welcome-section">
+      <h1>Welcome to the Flight Management Dashboard</h1>
+      <p class="welcome-desc">Monitor your airline's operations, performance and system status in real time.</p>
     </div>
+    <el-row :gutter="20" class="dashboard-row">
+      <el-col :span="6">
+        <el-card class="stat-card">
+          <div class="stat-title">Active Flights</div>
+          <div class="stat-value">{{ totalFlights }}</div>
+        </el-card>
+      </el-col>
+      <el-col :span="6">
+        <el-card class="stat-card">
+          <div class="stat-title">On-Time Rate</div>
+          <div class="stat-value success">{{ onTimeRate }}%</div>
+        </el-card>
+      </el-col>
+      <el-col :span="6">
+        <el-card class="stat-card">
+          <div class="stat-title">Delay Rate</div>
+          <div class="stat-value warning">{{ delayRate }}%</div>
+        </el-card>
+      </el-col>
+      <el-col :span="6">
+        <el-card class="stat-card">
+          <div class="stat-title">Cancel Rate</div>
+          <div class="stat-value danger">{{ cancelRate }}%</div>
+        </el-card>
+      </el-col>
+    </el-row>
 
-    <div class="main-navigation">
-      <div class="nav-section">
-        <h2>Flight Operations</h2>
-        <div class="nav-grid">
-          <router-link to="/flights" class="nav-card primary">
-            <div class="card-icon">✈️</div>
-            <div class="card-content">
-              <h3>Flight Management</h3>
-              <p>View, edit and manage all flight schedules</p>
-            </div>
-          </router-link>
-          
-          <router-link to="/flights/bulk-upload" class="nav-card secondary">
-            <div class="card-icon">📁</div>
-            <div class="card-content">
-              <h3>Bulk Upload</h3>
-              <p>Upload multiple flights using CSV format</p>
-            </div>
-          </router-link>
-        </div>
-      </div>
+    <el-row :gutter="20" class="dashboard-row" style="margin-top: 30px;">
+      <el-col :span="16">
+        <el-card>
+          <div class="chart-title">Flight Status Overview</div>
+          <div style="height: 260px; display: flex; align-items: center; justify-content: center;">
+            <canvas id="flight-status-chart" style="max-width: 400px; max-height: 220px;"></canvas>
+          </div>
+        </el-card>
+      </el-col>
+      <el-col :span="8">
+        <el-card>
+          <div class="chart-title">System Status</div>
+          <el-timeline>
+            <el-timeline-item :color="systemStatus.database ? 'green' : 'red'">Database Connection</el-timeline-item>
+            <el-timeline-item :color="systemStatus.api ? 'green' : 'red'">API Services</el-timeline-item>
+            <el-timeline-item :color="systemStatus.kafka ? 'green' : 'red'">Kafka</el-timeline-item>
+            <el-timeline-item color="green">Flight Tracking</el-timeline-item>
+            <el-timeline-item color="green">Reporting System</el-timeline-item>
+          </el-timeline>
+        </el-card>
+      </el-col>
+    </el-row>
 
-      <div class="nav-section">
-        <h2>Reports & Analytics</h2>
-        <div class="nav-grid">
-          <router-link to="/reports" class="nav-card primary">
-            <div class="card-icon">📊</div>
-            <div class="card-content">
-              <h3>Operational Reports</h3>
-              <p>Performance analytics and insights</p>
-            </div>
-          </router-link>
-          
-          <router-link to="/archive" class="nav-card secondary">
-            <div class="card-icon">📋</div>
-            <div class="card-content">
-              <h3>Flight Archive</h3>
-              <p>Historical flight data and records</p>
-            </div>
-          </router-link>
-        </div>
-      </div>
-    </div>
-
-    <!-- Performance Overview -->
-    <div class="performance-section">
-      <h2>Performance Overview</h2>
-      <div class="performance-grid">
-        <div class="perf-card">
-          <div class="perf-header">
-            <h3>Flight Status</h3>
-          </div>
-          <div class="perf-content">
-            <div class="perf-item">
-              <span class="perf-label">Total Flights</span>
-              <span class="perf-value">{{ totalFlights }}</span>
-            </div>
-            <div class="perf-item">
-              <span class="perf-label">On Time</span>
-              <span class="perf-value success">{{ onTimeRate }}%</span>
-            </div>
-            <div class="perf-item">
-              <span class="perf-label">Delayed</span>
-              <span class="perf-value warning">{{ delayRate }}%</span>
-            </div>
-            <div class="perf-item">
-              <span class="perf-label">Cancelled</span>
-              <span class="perf-value danger">{{ cancelRate }}%</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="perf-card">
-          <div class="perf-header">
-            <h3>System Status</h3>
-          </div>
-          <div class="perf-content">
-            <div class="status-item">
-              <span :class="['status-dot', systemStatus.database ? 'online' : 'offline']"></span>
-              <span class="status-text">Database Connection</span>
-            </div>
-            <div class="status-item">
-              <span :class="['status-dot', systemStatus.api ? 'online' : 'offline']"></span>
-              <span class="status-text">API Services</span>
-            </div>
-            <div class="status-item">
-              <span :class="['status-dot', systemStatus.kafka ? 'online' : 'offline']"></span>
-              <span class="status-text">Kafka</span>
-            </div>
-            <div class="status-item">
-              <span class="status-dot online"></span>
-              <span class="status-text">Flight Tracking</span>
-            </div>
-            <div class="status-item">
-              <span class="status-dot online"></span>
-              <span class="status-text">Reporting System</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Recent Activity -->
-    <div class="activity-section">
-      <h2>Recent Activity</h2>
-      <div class="activity-list">
-        <div v-for="activity in recentActivities" :key="activity.id" class="activity-item">
-          <div class="activity-time">{{ activity.time }}</div>
-          <div class="activity-content">
-            <div class="activity-title">{{ activity.text }}</div>
-            <div class="activity-type">{{ activity.type }}</div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <el-row :gutter="20" class="dashboard-row" style="margin-top: 30px;">
+      <el-col :span="24">
+        <el-card>
+          <div class="chart-title">Recent Activity</div>
+          <el-table :data="recentActivities" style="width: 100%">
+            <el-table-column prop="time" label="Time" width="120" />
+            <el-table-column prop="text" label="Activity" />
+            <el-table-column prop="type" label="Type" width="120" />
+          </el-table>
+        </el-card>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
@@ -139,6 +73,7 @@
 import { getFlights } from '../services/flightService';
 import { connectFlightWebSocket, disconnectFlightWebSocket } from '../services/websocketService';
 import axios from 'axios';
+import Chart from 'chart.js/auto';
 
 export default {
   name: 'Dashboard',
@@ -147,12 +82,13 @@ export default {
       flights: [],
       systemStatus: { api: false, database: false, kafka: false },
       staticActivities: [
-  { id: 1, text: 'Flight TK1234 scheduled for departure', type: 'Flight Schedule', time: '10:30 AM' },
-  { id: 2, text: 'Route IST-ESB added to network', type: 'Route Management', time: '09:15 AM' },
-  { id: 3, text: 'Monthly performance report generated', type: 'Reporting', time: '08:45 AM' },
-  { id: 4, text: 'System maintenance completed', type: 'System', time: 'Yesterday' }
+        { id: 1, text: 'Flight TK1234 scheduled for departure', type: 'Flight Schedule', time: '10:30 AM' },
+        { id: 2, text: 'Route IST-ESB added to network', type: 'Route Management', time: '09:15 AM' },
+        { id: 3, text: 'Monthly performance report generated', type: 'Reporting', time: '08:45 AM' },
+        { id: 4, text: 'System maintenance completed', type: 'System', time: 'Yesterday' }
       ],
-      recentActivities: []
+      recentActivities: [],
+      chart: null
     };
   },
   computed: {
@@ -171,6 +107,21 @@ export default {
     },
     onTimeRate() {
       return 100 - this.delayRate - this.cancelRate;
+    },
+    chartData() {
+      return {
+        labels: ['On Time', 'Delayed', 'Cancelled'],
+        datasets: [
+          {
+            data: [
+              this.onTimeRate,
+              this.delayRate,
+              this.cancelRate
+            ],
+            backgroundColor: ['#67c23a', '#e6a23c', '#f56c6c']
+          }
+        ]
+      };
     }
   },
   methods: {
@@ -183,380 +134,144 @@ export default {
       }
     },
     updateRecentActivities() {
-  let dynamic = [];
+      let dynamic = [];
       if (this.flights.length > 0) {
-    // Hem flightDate+std hem id ile sırala, en güncel 5 uçuşu bul
         const sorted = this.flights.slice().sort((a, b) => {
-      const dateA = a.flightDate && a.std ? new Date(a.flightDate + 'T' + a.std) : new Date(0);
-      const dateB = b.flightDate && b.std ? new Date(b.flightDate + 'T' + b.std) : new Date(0);
-      if (dateB - dateA !== 0) return dateB - dateA;
-      if (a.id && b.id) return b.id - a.id;
-      return 0;
-    });
-    dynamic = sorted.slice(0, 5).map(f => ({
-      id: f.id,
-      text: `Flight ${f.flightNumber} ${f.origin?.code || f.originCode} → ${f.destination?.code || f.destinationCode}`,
-      type: f.status === 'Cancelled' ? 'Cancelled' : (f.delay > 0 ? 'Delayed' : 'Scheduled'),
-      time: `${f.flightDate} ${f.std}`
-    }));
-  }
-      this.recentActivities = dynamic.length > 0 ? dynamic : [this.staticActivities[0]];
-}
-  },
-  async mounted() {
-    this.flights = await getFlights();
-    connectFlightWebSocket((flightList) => {
-      this.flights = flightList;
-      this.updateRecentActivities();
-});
-    await this.fetchSystemStatus();
-    this.updateRecentActivities();
-  },
-  beforeUnmount() {
-    disconnectFlightWebSocket();
+          const dateA = a.flightDate && a.std ? new Date(a.flightDate + 'T' + a.std) : new Date(0);
+          const dateB = b.flightDate && b.std ? new Date(b.flightDate + 'T' + b.std) : new Date(0);
+          if (dateB - dateA !== 0) return dateB - dateA;
+          if (a.id && b.id) return b.id - a.id;
+          return 0;
+        });
+        dynamic = sorted.slice(0, 5).map(f => ({
+          id: f.id,
+          text: `Flight ${f.flightNumber} ${f.origin?.code || f.originCode} → ${f.destination?.code || f.destinationCode}`,
+          type: f.status === 'Cancelled' ? 'Cancelled' : (f.delay > 0 ? 'Delayed' : 'Scheduled'),
+          time: `${f.flightDate} ${f.std}`
+        }));
+      }
+      this.recentActivities = [...dynamic, ...this.staticActivities].slice(0, 8);
+    },
+    renderChart() {
+      if (this.chart) {
+        this.chart.destroy();
+      }
+      const ctx = document.getElementById('flight-status-chart');
+      if (ctx) {
+        this.chart = new Chart(ctx, {
+          type: 'doughnut',
+          data: this.chartData,
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                display: true,
+                position: 'bottom'
+              }
+            }
+          }
+        });
+      }
+    }
   },
   watch: {
-    flights: {
+    chartData: {
       handler() {
-        this.updateRecentActivities();
+        this.$nextTick(() => {
+          this.renderChart();
+        });
       },
       deep: true
     }
+  },
+  async mounted() {
+    this.flights = await getFlights();
+    this.updateRecentActivities();
+    this.fetchSystemStatus();
+    this.$nextTick(() => {
+      this.renderChart();
+    });
+    connectFlightWebSocket((flightList) => {
+      this.flights = flightList;
+      this.updateRecentActivities();
+      this.$nextTick(() => {
+        this.renderChart();
+      });
+    });
+  },
+  beforeUnmount() {
+    disconnectFlightWebSocket();
+    if (this.chart) this.chart.destroy();
   }
 };
 </script>
 
 <style scoped>
-.airline-dashboard {
-  background: #ffffff;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  height: 100%;
+.dashboard-elplus {
+  padding: 30px;
 }
-
-/* Header Section */
-.dashboard-header {
-  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-  color: white;
-  padding: 3rem 2rem;
-  border-radius: 12px;
-  margin-bottom: 3rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.welcome-section {
+  margin-bottom: 32px;
+  text-align: left;
 }
-
-.header-content h1 {
-  font-size: 2.5rem;
-  font-weight: 300;
-  margin: 0 0 0.5rem 0;
-  letter-spacing: -0.5px;
+.welcome-section h1 {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
 }
-
-.subtitle {
+.welcome-desc {
+  color: #888;
   font-size: 1.1rem;
-  opacity: 0.9;
-  margin: 0;
-  font-weight: 300;
 }
-
-.header-stats {
-  display: flex;
-  gap: 3rem;
+.dashboard-row {
+  margin-bottom: 20px; 
 }
-
-.stat-item {
+.stat-card {
   text-align: center;
+  padding: 18px 0;
 }
-
-.stat-number {
-  display: block;
-  font-size: 2.5rem;
-  font-weight: 300;
-  margin-bottom: 0.25rem;
+.stat-title {
+  font-size: 16px;
+  color: #888;
+  margin-bottom: 8px;
 }
-
-.stat-label {
-  font-size: 0.9rem;
-  opacity: 0.8;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+.stat-value {
+  font-size: 32px;
+  font-weight: bold;
+  color: #222;
 }
-
-/* Main Navigation */
-.main-navigation {
-  margin-bottom: 3rem;
+.stat-value.success {
+  color: #67c23a;
 }
-
-.nav-section {
-  margin-bottom: 2.5rem;
+.stat-value.warning {
+  color: #e6a23c;
 }
-
-.nav-section h2 {
-  font-size: 1.5rem;
-  color: #1f2937;
-  margin-bottom: 1.5rem;
-  font-weight: 500;
-  border-bottom: 2px solid #e5e7eb;
-  padding-bottom: 0.5rem;
+.stat-value.danger {
+  color: #f56c6c;
 }
-
-.nav-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-}
-
-.nav-card {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 2rem;
-  text-decoration: none;
-  color: inherit;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-}
-
-.nav-card:hover {
-  border-color: #3b82f6;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
-  transform: translateY(-2px);
-}
-
-.nav-card.primary {
-  border-left: 4px solid #3b82f6;
-}
-
-.nav-card.secondary {
-  border-left: 4px solid #6b7280;
-}
-
-.card-icon {
-  font-size: 2rem;
-  width: 60px;
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #f8fafc;
-  border-radius: 8px;
-}
-
-.card-content h3 {
-  font-size: 1.25rem;
-  color: #1f2937;
-  margin: 0 0 0.5rem 0;
-  font-weight: 500;
-}
-
-.card-content p {
-  color: #6b7280;
-  margin: 0;
-  font-size: 0.95rem;
-  line-height: 1.5;
-}
-
-/* Performance Section */
-.performance-section {
-  margin-bottom: 3rem;
-}
-
-.performance-section h2 {
-  font-size: 1.5rem;
-  color: #1f2937;
-  margin-bottom: 1.5rem;
-  font-weight: 500;
-  border-bottom: 2px solid #e5e7eb;
-  padding-bottom: 0.5rem;
-}
-
-.performance-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: 2rem;
-}
-
-.perf-card {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.perf-header {
-  background: #f8fafc;
-  padding: 1.5rem;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.perf-header h3 {
-  margin: 0;
-  font-size: 1.1rem;
-  color: #374151;
-  font-weight: 500;
-}
-
-.perf-content {
-  padding: 1.5rem;
-}
-
-.perf-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid #f3f4f6;
-}
-
-.perf-item:last-child {
-  border-bottom: none;
-}
-
-.perf-label {
-  color: #6b7280;
-  font-size: 0.95rem;
-}
-
-.perf-value {
+.chart-title {
+  font-size: 18px;
   font-weight: 600;
-  font-size: 1.1rem;
-  color: #1f2937;
+  margin-bottom: 16px;
 }
 
-.perf-value.success {
-  color: #059669;
-}
-
-.perf-value.warning {
-  color: #d97706;
-}
-
-.perf-value.danger {
-  color: #dc2626;
-}
-
-.status-item {
+.dashboard-row .el-col {
   display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid #f3f4f6;
 }
-
-.status-item:last-child {
-  border-bottom: none;
-}
-
-.status-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-}
-
-.status-dot.online {
-  background: #388e3c;
-}
-
-.status-dot.offline {
-  background: #d32f2f;
-}
-
-.status-text {
-  color: #374151;
-  font-size: 0.95rem;
-}
-
-/* Activity Section */
-.activity-section {
-  margin-bottom: 2rem;
-}
-
-.activity-section h2 {
-  font-size: 1.5rem;
-  color: #1f2937;
-  margin-bottom: 1.5rem;
-  font-weight: 500;
-  border-bottom: 2px solid #e5e7eb;
-  padding-bottom: 0.5rem;
-}
-
-.activity-list {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.activity-item {
+.dashboard-row .el-card {
+  flex: 1 1 auto;
+  min-height: 320px;
   display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  padding: 1.5rem;
-  border-bottom: 1px solid #f3f4f6;
-  transition: background 0.2s ease;
+  flex-direction: column;
+  justify-content: flex-start;
 }
 
-.activity-item:hover {
-  background: #f8fafc;
-}
-
-.activity-item:last-child {
-  border-bottom: none;
-}
-
-.activity-time {
-  color: #6b7280;
-  font-size: 0.9rem;
-  font-weight: 500;
-  min-width: 80px;
-}
-
-.activity-content {
-  flex: 1;
-}
-
-.activity-title {
-  color: #1f2937;
-  font-weight: 500;
-  margin-bottom: 0.25rem;
-}
-
-.activity-type {
-  color: #6b7280;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .airline-dashboard {
-    padding: 1rem;
+@media (max-width: 900px) {
+  .dashboard-row .el-col {
+    display: block;
   }
-  
-  .dashboard-header {
-    flex-direction: column;
-    text-align: center;
-    gap: 2rem;
-  }
-  
-  .header-stats {
-    gap: 2rem;
-  }
-  
-  .nav-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .performance-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .nav-card {
-    flex-direction: column;
-    text-align: center;
+  .dashboard-row .el-card {
+    min-height: unset;
   }
 }
 </style> 
