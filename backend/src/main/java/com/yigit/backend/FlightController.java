@@ -7,10 +7,14 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yigit.backend.service.FlightKafkaProducer;
+import org.springframework.security.access.prepost.PreAuthorize;
+import com.yigit.backend.mapper.FlightMapper;
+import com.yigit.backend.dto.FlightResponseDTO;
 
 @RestController
 @RequestMapping("/api/flights")
 @CrossOrigin(origins = "http://localhost:5173")
+@PreAuthorize("hasAuthority('ADMIN')")
 public class FlightController {
     @Autowired
     private FlightRepository flightRepository;
@@ -24,10 +28,13 @@ public class FlightController {
     private FlightKafkaProducer flightKafkaProducer;
     @Autowired
     private ObjectMapper objectMapper;
+    @Autowired
+    private FlightMapper flightMapper;
 
     @GetMapping
-    public List<Flight> getAll() {
-        return flightRepository.findAll();
+    public List<FlightResponseDTO> getAll() {
+        List<Flight> flights = flightRepository.findAll();
+        return flightMapper.toDtoList(flights);
     }
 
     @PostMapping

@@ -3,30 +3,22 @@ package com.yigit.backend.service;
 import com.yigit.backend.User;
 import com.yigit.backend.UserRepository;
 import com.yigit.backend.dto.UserDto;
+import com.yigit.backend.mapper.UserMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
     public List<UserDto> getAllUsers() {
-        return userRepository.findAll().stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
-    }
-
-    private UserDto convertToDto(User user) {
-        return UserDto.builder()
-                .id(user.getId())
-                .username(user.getUsername())
-                .role(user.getRole())
-                .build();
+        List<User> users = userRepository.findAll();
+        return userMapper.toDtoList(users);
     }
 
     public void deleteUser(Long id) {
@@ -38,6 +30,6 @@ public class UserService {
         user.setUsername(userDto.getUsername());
         user.setRole(userDto.getRole());
         User updated = userRepository.save(user);
-        return convertToDto(updated);
+        return userMapper.toDto(updated);
     }
 } 

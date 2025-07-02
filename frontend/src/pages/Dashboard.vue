@@ -1,7 +1,7 @@
 <template>
   <div class="dashboard-elplus">
     <div class="welcome-section">
-      <h1>Welcome to the Flight Management Dashboard</h1>
+      <h1>Welcome to the Flight Management</h1>
       <p class="welcome-desc">Monitor your airline's operations, performance and system status in real time.</p>
     </div>
     <el-row :gutter="20" class="dashboard-row">
@@ -80,6 +80,7 @@ export default {
   data() {
     return {
       flights: [],
+      previousFlights: [],
       systemStatus: { api: false, database: false, kafka: false },
       staticActivities: [
         { id: 1, text: 'Flight TK1234 scheduled for departure', type: 'Flight Schedule', time: '10:30 AM' },
@@ -172,6 +173,43 @@ export default {
           }
         });
       }
+    },
+    addActivity(activity) {
+      this.recentActivities = [activity, ...this.recentActivities].slice(0, 8);
+    },
+    compareFlightsAndAddActivities(newFlights, oldFlights) {
+      const oldIds = oldFlights.map(f => f.id);
+      const newIds = newFlights.map(f => f.id);
+      const added = newFlights.filter(f => !oldIds.includes(f.id));
+      const removed = oldFlights.filter(f => !newIds.includes(f.id));
+      const updated = newFlights.filter(f => {
+        const old = oldFlights.find(of => of.id === f.id);
+        return old && JSON.stringify(f) !== JSON.stringify(old);
+      });
+      added.forEach(f => {
+        this.addActivity({
+          id: `add-${f.id}-${Date.now()}`,
+          text: `Flight ${f.flightNumber} added (${f.origin?.code || f.originCode} → ${f.destination?.code || f.destinationCode})`,
+          type: 'Added',
+          time: `${f.flightDate} ${f.std}`
+        });
+      });
+      removed.forEach(f => {
+        this.addActivity({
+          id: `del-${f.id}-${Date.now()}`,
+          text: `Flight ${f.flightNumber} deleted (${f.origin?.code || f.originCode} → ${f.destination?.code || f.destinationCode})`,
+          type: 'Deleted',
+          time: `${f.flightDate} ${f.std}`
+        });
+      });
+      updated.forEach(f => {
+        this.addActivity({
+          id: `upd-${f.id}-${Date.now()}`,
+          text: `Flight ${f.flightNumber} updated (${f.origin?.code || f.originCode} → ${f.destination?.code || f.destinationCode})`,
+          type: 'Updated',
+          time: `${f.flightDate} ${f.std}`
+        });
+      });
     }
   },
   watch: {
@@ -186,12 +224,15 @@ export default {
   },
   async mounted() {
     this.flights = await getFlights();
+    this.previousFlights = [...this.flights];
     this.updateRecentActivities();
     this.fetchSystemStatus();
     this.$nextTick(() => {
       this.renderChart();
     });
     connectFlightWebSocket((flightList) => {
+      this.compareFlightsAndAddActivities(flightList, this.flights);
+      this.previousFlights = [...this.flights];
       this.flights = flightList;
       this.updateRecentActivities();
       this.$nextTick(() => {
@@ -224,11 +265,12 @@ export default {
   font-size: 1.1rem;
 }
 .dashboard-row {
-  margin-bottom: 20px; 
+  margin-bottom: 10px;
 }
 .stat-card {
   text-align: center;
-  padding: 18px 0;
+  padding: 10px 0;
+  min-height: 90px;
 }
 .stat-title {
   font-size: 16px;
@@ -260,7 +302,7 @@ export default {
 }
 .dashboard-row .el-card {
   flex: 1 1 auto;
-  min-height: 320px;
+  min-height: 140px;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;

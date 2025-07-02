@@ -78,16 +78,16 @@
         v-loading="loading"
       >
         <el-table-column prop="flightNumber" label="Flight Number" width="120" />
-        <el-table-column prop="airline.name" label="Airline" width="80">
+        <el-table-column prop="airlineName" label="Airline" width="80">
           <template #default="scope">
             <div class="airline-logo">
-              <img :src="airlineLogos[scope.row.airline.code]" :alt="scope.row.airline.name" />
+              <img :src="airlineLogos[scope.row.airlineCode]" :alt="scope.row.airlineName" />
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="aircraftType.name" label="Aircraft Type" width="120" />
-        <el-table-column prop="origin.name" label="Origin" width="100" />
-        <el-table-column prop="destination.name" label="Destination" width="100" />
+        <el-table-column prop="aircraftTypeName" label="Aircraft Type" width="120" />
+        <el-table-column prop="originName" label="Origin" width="100" />
+        <el-table-column prop="destinationName" label="Destination" width="100" />
         <el-table-column prop="flightDate" label="Date" width="100" />
         <el-table-column prop="std" label="STD" width="80" />
         <el-table-column prop="sta" label="STA" width="80" />
@@ -622,6 +622,10 @@ async function confirmDelete() {
     deleteLoading.value = false;
   }
 }
+
+function handleDrawerClose(done) {
+  done();
+}
 </script>
 
 <style scoped>
@@ -714,9 +718,6 @@ async function confirmDelete() {
   margin: 0 auto;
 }
 
-
-
-/* Responsive adjustments */
 @media (max-width: 768px) {
   .flight-list-container {
     padding: 10px;
