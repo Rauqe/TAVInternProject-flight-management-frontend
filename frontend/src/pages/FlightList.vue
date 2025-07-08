@@ -484,13 +484,22 @@ onUnmounted(() => {
 
 const filteredFlights = computed(() => {
   if (!flights.value) return [];
-  return flights.value.filter(f =>
-    (!filters.value.airline || (f.airline && f.airline.code === filters.value.airline)) &&
-    (!filters.value.origin || (f.origin && f.origin.code === filters.value.origin)) &&
-    (!filters.value.destination || (f.destination && f.destination.code === filters.value.destination)) &&
-    (!filters.value.flightType || f.flightType === filters.value.flightType) &&
-    (!filters.value.search || f.flightNumber.toLowerCase().includes(filters.value.search.toLowerCase()))
-  );
+  return flights.value.filter(f => {
+    // FlightType filter - backend'de name var, filter'da code var
+    let flightTypeMatch = true;
+    if (filters.value.flightType) {
+      const selectedFlightType = flightTypes.value.find(ft => ft.code === filters.value.flightType);
+      flightTypeMatch = selectedFlightType && f.flightType === selectedFlightType.name;
+    }
+    
+    return (
+      (!filters.value.airline || f.airlineCode === filters.value.airline) &&
+      (!filters.value.origin || f.originCode === filters.value.origin) &&
+      (!filters.value.destination || f.destinationCode === filters.value.destination) &&
+      flightTypeMatch &&
+      (!filters.value.search || f.flightNumber.toLowerCase().includes(filters.value.search.toLowerCase()))
+    );
+  });
 });
 
 const paginatedFlights = computed(() => {

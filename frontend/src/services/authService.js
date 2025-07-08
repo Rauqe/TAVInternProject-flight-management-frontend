@@ -28,9 +28,5 @@ export const logout = () => {
 };
 
 export function getUserRole() {
-  const token = localStorage.getItem('jwt');
-  if (token === 'mock-jwt-token-admin') return 'admin';
-  if (token === 'mock-jwt-token-operator') return 'operator';
-  if (token === 'mock-jwt-token-viewer') return 'viewer';
-  return null;
+  return sessionStorage.getItem('user_role');
 } 

@@ -2,15 +2,28 @@ import apiClient from './api';
 
 // #region Flight Operations
 export async function addFlight(flight) {
+  // Format date and time for backend
+  const formatDate = (date) => {
+    if (!date) return '';
+    const d = new Date(date);
+    return d.toISOString().split('T')[0]; // YYYY-MM-DD format
+  };
+  
+  const formatTime = (time) => {
+    if (!time) return '';
+    const t = new Date(time);
+    return t.toTimeString().split(' ')[0]; // HH:MM:SS format
+  };
+
   const flightDTO = {
     flightNumber: flight.flightNumber,
     airlineCode: flight.airline,
     aircraftTypeCode: flight.aircraftType,
     originCode: flight.origin,
     destinationCode: flight.destination,
-    flightDate: flight.date,
-    std: flight.std,
-    sta: flight.sta,
+    flightDate: formatDate(flight.date),
+    std: formatTime(flight.std),
+    sta: formatTime(flight.sta),
     flightType: flight.flightType,
     delay: flight.delay,
     status: flight.status,
